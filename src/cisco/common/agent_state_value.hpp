@@ -1,0 +1,32 @@
+#pragma once
+
+#ifndef _CTM_CISCO_COMMON_AGENT_STATE_VALUE_HPP_
+#define _CTM_CISCO_COMMON_AGENT_STATE_VALUE_HPP_
+
+#include <cstdint>
+
+namespace cisco::common {
+/**
+ * @brief Agent 상태 값
+ *
+ */
+enum class AgentStateValue : std::uint32_t {
+  AGENT_STATE_LOGIN = 0,
+  AGENT_STATE_LOGOUT = 1,
+  AGENT_STATE_NOT_READY = 2,
+  AGENT_STATE_AVAILABLE = 3,
+  AGENT_STATE_TALKING = 4,
+  AGENT_STATE_WORK_NOT_READY = 5,
+  AGENT_STATE_WORK_READY = 6,
+  AGENT_STATE_BUSY_OTHER = 7,
+  AGENT_STATE_RESERVED = 8,
+  AGENT_STATE_UNKNOWN = 9,
+  AGENT_STATE_HOLD = 10,
+  AGENT_STATE_ACTIVE = 11,
+  AGENT_STATE_PAUSED = 12,
+  AGENT_STATE_INTERRUPTED = 13,
+  AGENT_STATE_NOT_ACTIVE = 14,
+};
+} // namespace cisco::common
+
+#endif
