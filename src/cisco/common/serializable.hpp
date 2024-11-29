@@ -40,7 +40,7 @@ public:
    * @param bytes
    * @return const T
    */
-  virtual const T deserialize(const std::vector<std::byte> &bytes) const = 0;
+  virtual void deserialize(const std::vector<std::byte> &bytes) = 0;
 
 protected:
 private:

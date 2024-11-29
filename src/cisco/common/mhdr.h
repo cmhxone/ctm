@@ -74,7 +74,7 @@ public:
    * @param bytes
    * @return const MHDR
    */
-  const MHDR deserialize(const std::vector<std::byte> &bytes) const override;
+  void deserialize(const std::vector<std::byte> &bytes) override;
 
 protected:
 private:

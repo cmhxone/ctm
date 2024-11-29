@@ -1,5 +1,4 @@
 #include "./mhdr.h"
-#include <vector>
 
 using namespace std;
 
@@ -10,5 +9,5 @@ const vector<byte> MHDR::serialize() const {
   return result;
 }
 
-const MHDR MHDR::deserialize(const vector<byte> &bytes) const {}
+void MHDR::deserialize(const vector<byte> &bytes) {}
 } // namespace cisco::common
