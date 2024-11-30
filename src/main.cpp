@@ -1,9 +1,12 @@
+#include "./cisco/session/heartbeat_req.h"
 #include "./cisco/session/open_req.h"
 
 #include <spdlog/spdlog.h>
 
+#include <Poco/Exception.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/StreamSocket.h>
+#include <Poco/Timespan.h>
 
 #include <cstdlib>
 #include <format>
@@ -51,6 +54,13 @@ int main(int argc, char **argv) {
 
     Poco::Net::StreamSocket socket{
         Poco::Net::SocketAddress{"172.30.1.11:42027"}};
+    socket.setBlocking(false);
+
+    Poco::Timespan timeout{5'000'000};
+    if (!socket.poll(timeout, Poco::Net::Socket::SELECT_WRITE)) {
+        spdlog::error("Socket connection timed out.");
+        return EXIT_FAILURE;
+    }
 
     socket.setNoDelay(true);
     socket.setLinger(true, 3);
@@ -60,15 +70,22 @@ int main(int argc, char **argv) {
     size_t send_bytes = socket.sendBytes(packet.data(), packet.size());
     spdlog::debug("Sent");
 
+    uint32_t invoke_id = 2;
     vector<byte> buffer{1'024};
     while (true) {
-        size_t recv_bytes = socket.receiveBytes(buffer.data(), buffer.size());
-        if (recv_bytes == 0) {
-            break;
+        if (!socket.poll(timeout, Poco::Net::Socket::SELECT_READ)) {
+            cisco::session::HeartbeatReq heartbeat_req{};
+            heartbeat_req.setInvokeID(invoke_id++);
+
+            const auto packet = serialize(heartbeat_req);
+
+            socket.sendBytes(packet.data(), packet.size());
+            spdlog::debug("Sent heartbeat");
+            continue;
         }
 
+        size_t recv_bytes = socket.receiveBytes(buffer.data(), buffer.size());
         spdlog::debug("Received");
-
         {
             stringstream ss{};
             ss << "\n";
