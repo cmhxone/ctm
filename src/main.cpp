@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     open_req.setAgentStateMask(0x3fff);
     open_req.setConfigMessageMask(15);
     open_req.setClientID("ctmonitor");
-    open_req.setClientPW("Comtec123!");
+    open_req.setClientPW("");
 
     const auto packet = serialize(open_req);
 
