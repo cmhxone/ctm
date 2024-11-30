@@ -3,69 +3,216 @@
 #ifndef _CTM_CISCO_COMMON_SERIALIZABLE_HPP_
 #define _CTM_CISCO_COMMON_SERIALIZABLE_HPP_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <vector>
 
 namespace cisco::common {
 
 /**
- * @brief 네트워크 패킷 형태로 직렬화/역직렬화 가능한 클래스 템플릿
+ * @brief 데이터 -> 패킷 직렬화 함수 템플릿
  *
  * @tparam T
+ * @param t
+ * @return const std::vector<std::byte>
  */
-template <typename T> class Serializable {
-  public:
-    /**
-     * @brief Construct a new Serializable object
-     *
-     */
-    Serializable() {};
+template <typename T> inline const std::vector<std::byte> serialize(const T &t);
 
-    /**
-     * @brief Destroy the Serializable object
-     *
-     */
-    virtual ~Serializable() {};
+template <typename T>
+inline const std::vector<std::byte> serialize(const std::optional<T> &t) {
+    if (!t.has_value()) {
+        return std::vector<std::byte>{};
+    }
 
-    /**
-     * @brief 직렬화 (클래스 -> 패킷)
-     *
-     * @return const std::vector<std::byte>
-     */
-    virtual const std::vector<std::byte> serialize(const T &t) const = 0;
+    return serialize<T>(t.value());
+}
 
-    /**
-     * @brief 역직렬화 (패킷 -> 클래스)
-     *
-     * @param bytes
-     * @return const T
-     */
-    virtual void deserialize(const std::vector<std::byte> &bytes) = 0;
+template <> inline const std::vector<std::byte> serialize(const char &value) {
+    std::vector<std::byte> result{};
+    result.emplace_back(static_cast<std::byte>(value));
 
-  protected:
-  private:
-};
+    return result;
+}
 
 template <>
-const std::vector<std::byte>
-Serializable<std::uint32_t>::serialize(const uint32_t &value) const {
-    std::byte bytes[4];
+inline const std::vector<std::byte> serialize(const std::byte &value) {
+    std::vector<std::byte> result{};
+    result.emplace_back(value);
 
-    bytes[0] = static_cast<std::byte>((value & 0xF000) >> 24);
-    bytes[1] = static_cast<std::byte>((value & 0x0F00) >> 16);
-    bytes[2] = static_cast<std::byte>((value & 0x00F0) >> 8);
-    bytes[3] = static_cast<std::byte>((value & 0x000F));
+    return result;
+}
 
+template <> inline const std::vector<std::byte> serialize(const bool &value) {
+    std::vector<std::byte> result{};
+    result.emplace_back(static_cast<std::byte>(0x00));
+    result.emplace_back(static_cast<std::byte>(value));
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte> serialize(const std::int16_t &value) {
     std::vector<std::byte> result{};
 
-    for (int i = 0; i < 4; i++) {
-        result.emplace_back(bytes[i]);
+    std::array<std::byte, 2> bytes;
+    bytes[0] = static_cast<std::byte>((value & 0xFF'00) >> 8);
+    bytes[1] = static_cast<std::byte>((value & 0x00'FF));
+
+    for (const std::byte b : bytes) {
+        result.emplace_back(b);
     }
 
     return result;
 }
 
-} // namespace cisco::common
+template <>
+inline const std::vector<std::byte> serialize(const std::uint16_t &value) {
+    std::vector<std::byte> result{};
 
+    std::array<std::byte, 2> bytes;
+    bytes[0] = static_cast<std::byte>((value & 0xFF'00) >> 8);
+    bytes[1] = static_cast<std::byte>((value & 0x00'FF));
+
+    for (const std::byte b : bytes) {
+        result.emplace_back(b);
+    }
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte> serialize(const std::int32_t &value) {
+    std::vector<std::byte> result{};
+
+    std::array<std::byte, 4> bytes;
+    bytes[0] = static_cast<std::byte>((value & 0xFF'00'00'00) >> 24);
+    bytes[1] = static_cast<std::byte>((value & 0x00'FF'00'00) >> 16);
+    bytes[2] = static_cast<std::byte>((value & 0x00'00'FF'00) >> 8);
+    bytes[3] = static_cast<std::byte>((value & 0x00'00'00'FF));
+
+    for (const std::byte b : bytes) {
+        result.emplace_back(b);
+    }
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte> serialize(const std::uint32_t &value) {
+    std::vector<std::byte> result{};
+
+    std::array<std::byte, 4> bytes;
+    bytes[0] = static_cast<std::byte>((value & 0xFF'00'00'00) >> 24);
+    bytes[1] = static_cast<std::byte>((value & 0x00'FF'00'00) >> 16);
+    bytes[2] = static_cast<std::byte>((value & 0x00'00'FF'00) >> 8);
+    bytes[3] = static_cast<std::byte>((value & 0x00'00'00'FF));
+
+    for (const std::byte b : bytes) {
+        result.emplace_back(b);
+    }
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte> serialize(const std::string_view &value) {
+    std::vector<std::byte> result{};
+    result.resize(value.length());
+
+    std::memcpy(result.data(), value.data(), value.length());
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte>
+serialize(const std::vector<std::byte> &value) {
+    return value;
+}
+
+/**
+ * @brief 패킷 -> 데이터 역직렬화 함수 템플릿
+ *
+ * @tparam T
+ * @param bytes
+ * @return const T
+ */
+template <typename T>
+inline const T deserialize(const std::vector<std::byte> &bytes);
+
+template <> inline const char deserialize(const std::vector<std::byte> &bytes) {
+    return static_cast<char>(bytes.at(0));
+}
+
+template <>
+inline const std::byte deserialize(const std::vector<std::byte> &bytes) {
+    return bytes.at(0);
+}
+
+template <>
+inline const std::int16_t deserialize(const std::vector<std::byte> &bytes) {
+    std::int16_t result = 0;
+
+    result |= (static_cast<std::int32_t>(bytes.at(0)) << 8);
+    result |= (static_cast<std::int32_t>(bytes.at(1)));
+
+    return result;
+}
+
+template <>
+inline const std::uint16_t deserialize(const std::vector<std::byte> &bytes) {
+    std::uint16_t result = 0;
+
+    result |= (static_cast<std::uint32_t>(bytes.at(0)) << 8);
+    result |= (static_cast<std::uint32_t>(bytes.at(1)));
+
+    return result;
+}
+
+template <>
+inline const std::int32_t deserialize(const std::vector<std::byte> &bytes) {
+    std::int32_t result = 0;
+
+    result |= (static_cast<std::int32_t>(bytes.at(0)) << 24);
+    result |= (static_cast<std::int32_t>(bytes.at(1)) << 16);
+    result |= (static_cast<std::int32_t>(bytes.at(2)) << 8);
+    result |= (static_cast<std::int32_t>(bytes.at(3)));
+
+    return result;
+}
+
+template <>
+inline const std::uint32_t deserialize(const std::vector<std::byte> &bytes) {
+    std::uint32_t result = 0;
+
+    result |= (static_cast<std::uint32_t>(bytes.at(0)) << 24);
+    result |= (static_cast<std::uint32_t>(bytes.at(1)) << 16);
+    result |= (static_cast<std::uint32_t>(bytes.at(2)) << 8);
+    result |= (static_cast<std::uint32_t>(bytes.at(3)));
+
+    return result;
+}
+
+template <>
+inline const std::string deserialize(const std::vector<std::byte> &bytes) {
+    std::string result{};
+    result.resize(bytes.size());
+
+    std::memcpy(result.data(), bytes.data(), bytes.size());
+
+    return result;
+}
+
+template <>
+inline const std::vector<std::byte>
+deserialize(const std::vector<std::byte> &bytes) {
+    return bytes;
+}
+
+} // namespace cisco::common
 #endif

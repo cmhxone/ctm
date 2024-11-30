@@ -16,6 +16,15 @@ add_executable(
 
     # template
     src/template/singleton.hpp
+
+    # cisco
+    src/cisco/common/agent_state_value.hpp
+    src/cisco/common/failure_indication.hpp
+    src/cisco/common/floating_data.hpp
+    src/cisco/common/message_type.hpp
+    src/cisco/common/mhdr.hpp
+    src/cisco/common/serializable.hpp
+    src/cisco/common/tag_value.hpp
 )
 
 target_link_libraries(
