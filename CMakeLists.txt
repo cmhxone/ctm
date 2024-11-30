@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 find_package(Poco REQUIRED COMPONENTS Net NetSSL)
+find_package(spdlog CONFIG REQUIRED)
 
 add_executable(
     ctm
@@ -22,4 +23,5 @@ target_link_libraries(
 
     Poco::Net
     Poco::NetSSL
+    spdlog::spdlog_header_only
 )
