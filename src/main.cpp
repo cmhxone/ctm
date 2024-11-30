@@ -1,15 +1,22 @@
-#include <cstdlib>
+#include "./cisco/session/open_req.h"
+
+#include <spdlog/spdlog.h>
 
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/StreamSocket.h>
-#include <vector>
 
-#include "./cisco/session/open_req.h"
+#include <cstdlib>
+#include <format>
+#include <iomanip>
+#include <sstream>
+#include <vector>
 
 using namespace std;
 using namespace cisco::common;
 
 int main(int argc, char **argv) {
+    spdlog::set_level(spdlog::level::level_enum::debug);
+
     cisco::session::OpenReq open_req{};
     open_req.setInvokeID(1);
     open_req.setVersionNumber(24);
@@ -23,18 +30,24 @@ int main(int argc, char **argv) {
 
     const auto packet = serialize(open_req);
 
-    for (int i = 0; const std::byte &b : packet) {
-        printf("%02lx ", b);
+    {
+        stringstream ss{};
+        ss << "\n";
 
-        if (i % 4 == 3) {
-            printf(" ");
-        }
+        for (int i = 0; const std::byte &b : packet) {
+            ss << std::setw(2) << std::setfill('0') << std::hex
+               << static_cast<int32_t>(b) << " ";
 
-        if (i++ % 16 == 15) {
-            printf("\n");
+            if (i % 4 == 3) {
+                ss << " ";
+            }
+
+            if (i++ % 16 == 15) {
+                ss << "\n";
+            }
         }
+        spdlog::debug(ss.str());
     }
-    printf("\n");
 
     Poco::Net::StreamSocket socket{
         Poco::Net::SocketAddress{"172.30.1.11:42027"}};
@@ -42,12 +55,10 @@ int main(int argc, char **argv) {
     socket.setNoDelay(true);
     socket.setLinger(true, 3);
 
-    printf("Connected\n");
-
-    printf("%02lx\n", packet.size() - 8);
+    spdlog::debug("Connected");
 
     size_t send_bytes = socket.sendBytes(packet.data(), packet.size());
-    printf("Sent\n");
+    spdlog::debug("Sent");
 
     vector<byte> buffer{1'024};
     while (true) {
@@ -56,20 +67,26 @@ int main(int argc, char **argv) {
             break;
         }
 
-        printf("Received\n");
+        spdlog::debug("Received");
 
-        for (int i = 0; i < recv_bytes; i++) {
-            printf("%02x ", buffer.at(i));
-            if (i % 4 == 3) {
-                printf(" ");
+        {
+            stringstream ss{};
+            ss << "\n";
+
+            for (int i = 0; i < recv_bytes; i++) {
+                ss << std::setw(2) << std::setfill('0') << std::hex
+                   << static_cast<int32_t>(buffer.at(i)) << " ";
+                if (i % 4 == 3) {
+                    ss << " ";
+                }
+                if (i % 16 == 15) {
+                    ss << "\n";
+                }
             }
-            if (i % 16 == 15) {
-                printf("\n");
-            }
+            spdlog::debug(ss.str());
         }
-        printf("\n");
     }
 
-    printf("Done");
+    spdlog::debug("Done");
     return EXIT_SUCCESS;
 }
