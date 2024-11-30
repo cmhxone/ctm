@@ -1,4 +1,3 @@
-#include <chrono>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -23,7 +22,7 @@ int main(int argc, char **argv) {
   buffer.emplace_back((byte)0x00);
   buffer.emplace_back((byte)0x00);
   buffer.emplace_back((byte)0x00);
-  buffer.emplace_back((byte)0x4F);
+  buffer.emplace_back((byte)0x49);
   // Type
   buffer.emplace_back((byte)0x00);
   buffer.emplace_back((byte)0x00);
@@ -90,23 +89,17 @@ int main(int argc, char **argv) {
   buffer.emplace_back((byte)0x01);
   // Length
   buffer.emplace_back((byte)0x00);
-  buffer.emplace_back((byte)0x10);
-  // ucce15\ctsadmin
-  buffer.emplace_back((byte)0x75);
-  buffer.emplace_back((byte)0x63);
-  buffer.emplace_back((byte)0x63);
-  buffer.emplace_back((byte)0x65);
-  buffer.emplace_back((byte)0x31);
-  buffer.emplace_back((byte)0x35);
-  buffer.emplace_back((byte)0x5C);
+  buffer.emplace_back((byte)0x0A);
+  // ctmonitor
   buffer.emplace_back((byte)0x63);
   buffer.emplace_back((byte)0x74);
-  buffer.emplace_back((byte)0x73);
-  buffer.emplace_back((byte)0x61);
-  buffer.emplace_back((byte)0x64);
   buffer.emplace_back((byte)0x6D);
-  buffer.emplace_back((byte)0x69);
+  buffer.emplace_back((byte)0x6F);
   buffer.emplace_back((byte)0x6E);
+  buffer.emplace_back((byte)0x69);
+  buffer.emplace_back((byte)0x74);
+  buffer.emplace_back((byte)0x6F);
+  buffer.emplace_back((byte)0x72);
   buffer.emplace_back((byte)0x00);
   // Client PW
   buffer.emplace_back((byte)0x00);
@@ -127,7 +120,7 @@ int main(int argc, char **argv) {
   buffer.emplace_back((byte)0x21);
   buffer.emplace_back((byte)0x00);
 
-  printf("%02x\n", buffer.size() - 8);
+  printf("%02lx\n", buffer.size() - 8);
 
   size_t send_bytes = socket.sendBytes(buffer.data(), buffer.size());
   printf("Sent\n");
