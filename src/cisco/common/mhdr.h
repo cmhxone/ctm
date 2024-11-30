@@ -64,9 +64,10 @@ public:
   /**
    * @brief 메시지 헤더 패킷 직렬화
    *
+   * @param mhdr
    * @return const std::vector<std::byte>
    */
-  const std::vector<std::byte> serialize() const override;
+  const std::vector<std::byte> serialize(const MHDR &mhdr) const override;
 
   /**
    * @brief 메시지 헤더 패킷 역직렬화

@@ -73,10 +73,11 @@ public:
 
   /**
    * @brief 패킷 직렬화 (클래스 -> 패킷)
-   *
-   * @return const std::vector<std::byte>
+   * 
+   * @param floating_data 
+   * @return const std::vector<std::byte> 
    */
-  const std::vector<std::byte> serialize() const override;
+  const std::vector<std::byte> serialize(const FloatingData &floating_data) const override;
 
   /**
    * @brief 패킷 역직렬화 (패킷 -> 클래스)
