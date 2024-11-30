@@ -3,6 +3,13 @@
 #ifndef _CTM_CISCO_SESSION_OPEN_REQ_H_
 #define _CTM_CISCO_SESSION_OPEN_REQ_H_
 
+/*
+  OPEN_REQ 패킷 레이아웃
+  +------+------------+---------------+
+  | MHDR | Fixed Part | Floating Part |
+  +------+------------+---------------+
+*/
+
 #include "../common/floating_data.hpp"
 #include "../common/mhdr.hpp"
 #include "../common/serializable.hpp"

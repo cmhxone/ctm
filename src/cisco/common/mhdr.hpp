@@ -3,6 +3,13 @@
 #ifndef _CTM_CISCO_COMMON_MHDR_HPP_
 #define _CTM_CISCO_COMMON_MHDR_HPP_
 
+/*
+  MHDR (Message Header) 패킷 레이아웃
+  +---------------+---------------+
+  | Length (u32)  | Type (u32)    |
+  +---------------+---------------+
+*/
+
 #include "./message_type.hpp"
 #include "./serializable.hpp"
 

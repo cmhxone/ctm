@@ -3,6 +3,13 @@
 #ifndef _CTM_CISCO_COMMON_FLOATING_DATA_HPP_
 #define _CTM_CISCO_COMMON_FLOATING_DATA_HPP_
 
+/*
+  Floating Data 패킷 레이아웃
+  +---------------+---------------+----------------+
+  | Tag (u16)     | Length (u16)  | Data (variant) |
+  +---------------+---------------+----------------+
+*/
+
 #include "./serializable.hpp"
 #include "./tag_value.hpp"
 
