@@ -400,8 +400,8 @@ cisco::common::serialize(const cisco::session::OpenReq &open_req) {
 template <>
 inline const cisco::session::OpenReq
 cisco::common::deserialize(const std::vector<std::byte> &bytes) {
-    cisco::session::OpenReq{};
     // FIXME: 수정하시오
+    return cisco::session::OpenReq{};
 }
 
 #endif
