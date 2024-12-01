@@ -21,6 +21,9 @@ add_executable(
 
     # util
     src/util/ini_loader.cpp
+
+    # channel
+    src/channel/command_event.cpp
 )
 
 target_link_libraries(

@@ -1,3 +1,5 @@
+#include "./channel/command_event.h"
+#include "./channel/event_channel.hpp"
 #include "./cisco/session/heartbeat_req.h"
 #include "./cisco/session/open_req.h"
 #include "./util/ini_loader.h"
@@ -12,6 +14,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 using namespace std;
@@ -19,6 +22,18 @@ using namespace cisco::common;
 
 int main(int argc, char **argv) {
     spdlog::set_level(spdlog::level::level_enum::debug);
+
+    channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
+
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
 
     const auto *loader = util::IniLoader::getInstance();
     const string side_a_ip = loader->get("cti", "side.a.ip", "localhost"s);
