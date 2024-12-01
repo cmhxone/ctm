@@ -1,12 +1,12 @@
 #include "./cisco/session/heartbeat_req.h"
 #include "./cisco/session/open_req.h"
 
-#include <spdlog/spdlog.h>
-
 #include <Poco/Exception.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Timespan.h>
+
+#include <spdlog/spdlog.h>
 
 #include <cstdlib>
 #include <format>
