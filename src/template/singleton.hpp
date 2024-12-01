@@ -16,7 +16,7 @@ public:
    *
    * @return T*
    */
-  T *getInstance() {
+  static T *getInstance() {
     if (instance == nullptr) {
       instance = new T();
     }
