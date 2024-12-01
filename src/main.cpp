@@ -14,7 +14,6 @@
 #include <cstdlib>
 #include <iomanip>
 #include <sstream>
-#include <thread>
 #include <vector>
 
 using namespace std;
@@ -23,9 +22,9 @@ using namespace cisco::common;
 int main(int argc, char **argv) {
     spdlog::set_level(spdlog::level::level_enum::debug);
 
-    channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
-    channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
-    channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
+    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
+    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
+    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
 
     channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
         channel::CommandEvent{});

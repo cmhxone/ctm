@@ -34,10 +34,10 @@ class EventChannel : public tmpl::Singleton<EventChannel<T>> {
     virtual ~EventChannel() = default;
 
     /**
-     * @brief 이벤트 채널 구독
+     * @brief 이벤트 채널 폴링
      *
      */
-    void subscribe() noexcept {
+    void poll() noexcept {
         // 이미 실행중인 경우 추가 스레드 생성하지 않음
         if (is_launched.load(std::memory_order_acquire)) {
             return;
@@ -45,7 +45,7 @@ class EventChannel : public tmpl::Singleton<EventChannel<T>> {
 
         is_launched.store(true, std::memory_order_release);
 
-        // Polling 스레드 생성 
+        // Polling 스레드 생성
         std::thread t{[&]() {
             spdlog::debug("Event channel polling thread launched");
 
