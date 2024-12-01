@@ -119,7 +119,7 @@
         },
         {
             "name": "debug-linux-x64",
-            "displayName": "디버그 (64 리눅스)",
+            "displayName": "디버그 (x64 리눅스)",
             "description": "컴파일러를 사용하는 중: C = /usr/bin/clang, CXX = /usr/bin/clang++",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "generator": "Ninja",
