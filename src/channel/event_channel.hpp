@@ -6,6 +6,9 @@
 #include "../template/singleton.hpp"
 #include "./event.hpp"
 
+#include <spdlog/spdlog.h>
+
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -35,7 +38,17 @@ class EventChannel : public tmpl::Singleton<EventChannel<T>> {
      *
      */
     void subscribe() noexcept {
+        // 이미 실행중인 경우 추가 스레드 생성하지 않음
+        if (is_launched.load(std::memory_order_acquire)) {
+            return;
+        }
+
+        is_launched.store(true, std::memory_order_release);
+
+        // Polling 스레드 생성 
         std::thread t{[&]() {
+            spdlog::debug("Event channel polling thread launched");
+
             while (true) {
                 std::unique_lock lk{channel_mtx};
 
@@ -68,6 +81,7 @@ class EventChannel : public tmpl::Singleton<EventChannel<T>> {
     std::queue<T> event_queue{};
     std::mutex channel_mtx{};
     std::condition_variable channel_cv{};
+    std::atomic_bool is_launched{false};
 
   private:
 };
