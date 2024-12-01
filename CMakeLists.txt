@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 find_package(Poco REQUIRED COMPONENTS Net NetSSL)
 find_package(spdlog CONFIG REQUIRED)
+find_package(unofficial-inih CONFIG REQUIRED)
 
 add_executable(
     ctm
@@ -17,6 +18,9 @@ add_executable(
     # CTM
     src/ctm/ctm.cpp
     src/ctm/cti_client.cpp
+
+    # util
+    src/util/ini_loader.cpp
 )
 
 target_link_libraries(
@@ -25,4 +29,10 @@ target_link_libraries(
     Poco::Net
     Poco::NetSSL
     spdlog::spdlog_header_only
+    unofficial::inih::inireader
 )
+
+# 리소스 파일 이동
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res/conf)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/conf/ctm.ini ${CMAKE_CURRENT_BINARY_DIR}/res/conf/ctm.ini COPYONLY)

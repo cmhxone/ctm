@@ -1,5 +1,6 @@
 #include "./cisco/session/heartbeat_req.h"
 #include "./cisco/session/open_req.h"
+#include "./util/ini_loader.h"
 
 #include <Poco/Exception.h>
 #include <Poco/Net/SocketAddress.h>
@@ -9,7 +10,6 @@
 #include <spdlog/spdlog.h>
 
 #include <cstdlib>
-#include <format>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -19,6 +19,10 @@ using namespace cisco::common;
 
 int main(int argc, char **argv) {
     spdlog::set_level(spdlog::level::level_enum::debug);
+
+    const auto *loader = util::IniLoader::getInstance();
+    const string side_a_ip = loader->get("cti", "side.a.ip", "localhost"s);
+    spdlog::debug(side_a_ip);
 
     cisco::session::OpenReq open_req{};
     open_req.setInvokeID(1);
