@@ -27,15 +27,24 @@ int main(int argc, char **argv) {
     channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
     channel::EventChannel<channel::CommandEvent>::getInstance()->subscribe();
 
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
+    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
+        channel::CommandEvent{});
 
     const auto *loader = util::IniLoader::getInstance();
     const string side_a_ip = loader->get("cti", "side.a.ip", "localhost"s);
@@ -122,6 +131,8 @@ int main(int argc, char **argv) {
                 }
             }
             spdlog::debug(ss.str());
+            channel::EventChannel<channel::CommandEvent>::getInstance()
+                ->publish(channel::CommandEvent{});
         }
     }
 
