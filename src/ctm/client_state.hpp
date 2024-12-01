@@ -43,7 +43,7 @@ class ClientState : public tmpl::Singleton<ClientState> {
     }
 
     /**
-     * @brief
+     * @brief 액티브 상태 토글 (On -> Off, Off -> On)
      *
      */
     void toggleActive() {
@@ -52,7 +52,7 @@ class ClientState : public tmpl::Singleton<ClientState> {
     }
 
     /**
-     * @brief
+     * @brief 재시도 횟수 누산
      *
      */
     void addRetryCount() {
@@ -61,7 +61,7 @@ class ClientState : public tmpl::Singleton<ClientState> {
     }
 
     /**
-     * @brief
+     * @brief 재시도 횟수 초기화
      *
      */
     void resetRetryCount() {
