@@ -1,4 +1,5 @@
 #include "./cti_client.h"
+#include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/cti_event.hpp"
 #include "../channel/event_channel.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
@@ -64,9 +65,14 @@ void CTIClient::connect() noexcept {
 
   client_socket.connectNB(Poco::Net::SocketAddress{cti_server_host});
 
+  // 접속 실패시 CTI Error 를 채널에 전송한다
   if (!client_socket.poll(connection_timespan,
                           Poco::Net::Socket::SELECT_WRITE)) {
-    // TODO: 오류 채널 이벤트 전송
+    spdlog::error("CTI Server connection failed");
+    channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+        ->publish(channel::event::CTIErrorEvent{
+            getCTIServerHost(),
+            channel::event::CTIErrorEvent::CTIErrorType::CONNECTION_FAIL});
     return;
   }
   client_socket.setLinger(true, 3);
@@ -146,7 +152,11 @@ void CTIClient::connect() noexcept {
         // 커넥션 실패 시 처리
         spdlog::error("CTI Client exception: {}", e.what());
         is_connected.store(false, memory_order_release);
-        // TODO: 오류 채널 이벤트 전송
+
+        channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+            ->publish(channel::event::CTIErrorEvent{
+                getCTIServerHost(),
+                channel::event::CTIErrorEvent::CTIErrorType::CONNECTION_LOST});
       }
     }
   }};
@@ -166,6 +176,12 @@ void CTIClient::handleEvent(const channel::event::Event *event) {
                   static_cast<uint32_t>(
                       dynamic_cast<const channel::event::CTIEvent *>(event)
                           ->getMessageType()));
+    break;
+  case channel::event::EventType::ERROR_EVENT:
+    spdlog::debug("ERROR_Event received, error_type: {}",
+                  static_cast<uint32_t>(
+                      dynamic_cast<const channel::event::ErrorEvent *>(event)
+                          ->getErrorType()));
     break;
   default:
     spdlog::debug("Unknown Event received");

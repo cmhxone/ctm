@@ -13,6 +13,7 @@ namespace channel::event {
  */
 enum class EventType : std::int32_t {
   CTI_EVENT,
+  ERROR_EVENT,
 };
 
 /**

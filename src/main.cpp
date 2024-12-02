@@ -1,5 +1,6 @@
 #include "./channel/event_channel.hpp"
 #include "./ctm/cti_client.h"
+#include "channel/event/cti_error_event.hpp"
 #include "channel/event/cti_event.hpp"
 
 #include <chrono>
@@ -17,6 +18,8 @@ int main(int argc, char **argv) {
   ctm::CTIClient client{};
   channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
       &client);
+  channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+      ->subscribe(&client);
 
   client.connect();
 

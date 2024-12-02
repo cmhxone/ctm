@@ -8,8 +8,9 @@
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Timespan.h>
 
-#include <string>
 #include <atomic>
+#include <string>
+
 
 namespace ctm {
 class CTIClient : public channel::Subscriber {
@@ -29,6 +30,13 @@ public:
   CTIClient(const CTIClient &) = delete;
 
   /**
+   * @brief CTI 서버 호스트 반환
+   *
+   * @return const std::string
+   */
+  const std::string getCTIServerHost() const { return cti_server_host; }
+
+  /**
    * @brief CTI 서버 접속
    *
    */
@@ -39,11 +47,11 @@ public:
    */
   void disconnect() noexcept;
 
-/**
- * @brief 채널 이벤트 핸들링
- * 
- * @param event 
- */
+  /**
+   * @brief 채널 이벤트 핸들링
+   *
+   * @param event
+   */
   virtual void handleEvent(const channel::event::Event *event) override;
 
 protected:
