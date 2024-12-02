@@ -1,4 +1,6 @@
 #include "./cti_client.h"
+#include "../channel/event/cti_event.hpp"
+#include "../channel/event_channel.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
 #include "../cisco/session/open_req.hpp"
 #include "../util/ini_loader.h"
@@ -6,6 +8,8 @@
 
 #include <Poco/Net/SocketAddress.h>
 
+#include <algorithm>
+#include <iterator>
 #include <spdlog/spdlog.h>
 
 #include <atomic>
@@ -127,6 +131,14 @@ void CTIClient::connect() noexcept {
         }
       }
       spdlog::debug("Received packet\n{}", ss.str());
+
+      // CTI 이벤트 배포
+      std::vector<std::byte> received_packet{};
+      std::move(buffer.cbegin(), buffer.cbegin() + length,
+                std::back_inserter(received_packet));
+
+      channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
+          channel::event::CTIEvent{received_packet});
     }
   }};
 
@@ -138,7 +150,19 @@ void CTIClient::connect() noexcept {
  *
  * @param event
  */
-void CTIClient::handleEvent(const channel::event::Event &event) {}
+void CTIClient::handleEvent(const channel::event::Event *event) {
+  switch (event->getEventType()) {
+  case channel::event::EventType::CTI_EVENT:
+    spdlog::debug("CTI_Event received, message_type: {}",
+                  static_cast<uint32_t>(
+                      dynamic_cast<const channel::event::CTIEvent *>(event)
+                          ->getMessageType()));
+    break;
+  default:
+    spdlog::debug("Unknown Event received");
+    break;
+  }
+}
 
 /**
  * @brief CTI 서버 접속 해제

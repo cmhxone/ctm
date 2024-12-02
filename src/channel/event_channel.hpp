@@ -55,7 +55,7 @@ public:
 
         channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
 
-        const event::Event &event = event_queue.front();
+        const event::Event *event = &event_queue.front();
 
         // 구독자가 이벤트를 처리한다
         subscriber_mtx.lock();

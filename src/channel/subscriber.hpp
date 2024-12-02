@@ -8,7 +8,7 @@
 namespace channel {
 class Subscriber {
 public:
-  virtual void handleEvent(const event::Event &event) = 0;
+  virtual void handleEvent(const event::Event *event) = 0;
 
 protected:
 private:

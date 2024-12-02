@@ -1,6 +1,6 @@
 #include "./channel/event_channel.hpp"
 #include "./ctm/cti_client.h"
-#include "channel/event/command_event.h"
+#include "channel/event/cti_event.hpp"
 
 #include <chrono>
 #include <spdlog/spdlog.h>
@@ -12,10 +12,10 @@ using namespace std;
 
 int main(int argc, char **argv) {
   spdlog::set_level(spdlog::level::level_enum::debug);
+  channel::EventChannel<channel::event::CTIEvent>::getInstance()->poll();
 
   ctm::CTIClient client{};
-
-  channel::EventChannel<channel::event::CommandEvent>::getInstance()->subscribe(
+  channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
       &client);
 
   client.connect();

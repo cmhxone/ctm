@@ -44,7 +44,7 @@ public:
  * 
  * @param event 
  */
-  virtual void handleEvent(const channel::event::Event &event) override;
+  virtual void handleEvent(const channel::event::Event *event) override;
 
 protected:
 private:
