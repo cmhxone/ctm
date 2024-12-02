@@ -12,21 +12,22 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-  spdlog::set_level(spdlog::level::level_enum::debug);
-  channel::EventChannel<channel::event::CTIEvent>::getInstance()->poll();
+    spdlog::set_level(spdlog::level::level_enum::debug);
+    channel::EventChannel<channel::event::CTIEvent>::getInstance()->poll();
+    channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()->poll();
 
-  ctm::CTIClient client{};
-  channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
-      &client);
-  channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
-      ->subscribe(&client);
+    ctm::CTIClient client{};
+    channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
+        &client);
+    channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+        ->subscribe(&client);
 
-  client.connect();
+    client.connect();
 
-  while (true) {
-    this_thread::sleep_for(chrono::milliseconds{100});
-  }
+    while (true) {
+        this_thread::sleep_for(chrono::milliseconds{100});
+    }
 
-  spdlog::debug("Done");
-  return EXIT_SUCCESS;
+    spdlog::debug("Done");
+    return EXIT_SUCCESS;
 }
