@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CTM_CISCO_SESSION_OPEN_REQ_H_
-#define _CTM_CISCO_SESSION_OPEN_REQ_H_
+#ifndef _CTM_CISCO_SESSION_OPEN_REQ_HPP_
+#define _CTM_CISCO_SESSION_OPEN_REQ_HPP_
 
 /*
   OPEN_REQ 패킷 레이아웃

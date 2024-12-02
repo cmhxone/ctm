@@ -1,7 +1,7 @@
 #include "./channel/command_event.h"
 #include "./channel/event_channel.hpp"
-#include "./cisco/session/heartbeat_req.h"
-#include "./cisco/session/open_req.h"
+#include "./cisco/session/heartbeat_req.hpp"
+#include "./cisco/session/open_req.hpp"
 #include "./util/ini_loader.h"
 
 #include <Poco/Exception.h>
