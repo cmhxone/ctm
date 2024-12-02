@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CTM_CHANNEL_EVENT_HPP_
-#define _CTM_CHANNEL_EVENT_HPP_
+#ifndef _CTM_CHANNEL_EVENT_EVENT_HPP_
+#define _CTM_CHANNEL_EVENT_EVENT_HPP_
 
 #include <concepts>
 

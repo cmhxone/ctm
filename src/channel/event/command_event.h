@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CTM_CHANNEL_COMMAND_EVENT_H_
-#define _CTM_CHANNEL_COMMAND_EVENT_H_
+#ifndef _CTM_CHANNEL_EVENT_COMMAND_EVENT_H_
+#define _CTM_CHANNEL_EVENT_COMMAND_EVENT_H_
 
 #include "./event.hpp"
 
