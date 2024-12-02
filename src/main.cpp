@@ -1,9 +1,6 @@
+#include "./channel/event_channel.hpp"
 #include "./ctm/cti_client.h"
-
-#include <Poco/Exception.h>
-#include <Poco/Net/SocketAddress.h>
-#include <Poco/Net/StreamSocket.h>
-#include <Poco/Timespan.h>
+#include "channel/event/command_event.h"
 
 #include <chrono>
 #include <spdlog/spdlog.h>
@@ -17,6 +14,9 @@ int main(int argc, char **argv) {
   spdlog::set_level(spdlog::level::level_enum::debug);
 
   ctm::CTIClient client{};
+
+  channel::EventChannel<channel::event::CommandEvent>::getInstance()->subscribe(
+      &client);
 
   client.connect();
 
