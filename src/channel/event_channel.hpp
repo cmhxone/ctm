@@ -59,8 +59,8 @@ public:
 
         // 구독자가 이벤트를 처리한다
         subscriber_mtx.lock();
-        for (Subscriber &subscriber : subscribers) {
-          subscriber.handleEvent(event);
+        for (Subscriber *subscriber : subscribers) {
+          subscriber->handleEvent(event);
         }
         subscriber_mtx.unlock();
 
@@ -91,9 +91,9 @@ public:
    *
    * @param subscriber
    */
-  void subscribe(const Subscriber &subscriber) {
+  void subscribe(Subscriber *subscriber) {
     subscriber_mtx.lock();
-    subscribers.emplace_back(subscriber);
+    subscribers.push_back(subscriber);
     subscriber_mtx.unlock();
   }
 
@@ -103,7 +103,7 @@ protected:
   std::condition_variable channel_cv{};
   std::atomic_bool is_launched{false};
 
-  std::vector<Subscriber> subscribers{};
+  std::vector<Subscriber *> subscribers{};
   std::mutex subscriber_mtx{};
 
 private:
