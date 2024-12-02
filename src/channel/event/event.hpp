@@ -5,7 +5,7 @@
 
 #include <concepts>
 
-namespace channel {
+namespace channel::event {
 /**
  * @brief 채널에서 처리할 이벤트 추상 클래스
  *

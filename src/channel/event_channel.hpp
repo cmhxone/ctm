@@ -4,7 +4,7 @@
 #define _CTM_CHANNEL_EVENT_CHANNEL_HPP_
 
 #include "../template/singleton.hpp"
-#include "./event.hpp"
+#include "./event/event.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -19,7 +19,7 @@ namespace channel {
  * @brief 이벤트 채널
  *
  */
-template <DerivedEvent T>
+template <event::DerivedEvent T>
 class EventChannel : public tmpl::Singleton<EventChannel<T>> {
   public:
     /**

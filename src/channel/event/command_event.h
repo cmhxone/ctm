@@ -5,7 +5,7 @@
 
 #include "./event.hpp"
 
-namespace channel {
+namespace channel::event {
 class CommandEvent : public Event {
   public:
     CommandEvent();

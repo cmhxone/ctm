@@ -1,4 +1,4 @@
-#include "./channel/command_event.h"
+#include "./channel/event/command_event.h"
 #include "./channel/event_channel.hpp"
 #include "./cisco/session/heartbeat_req.hpp"
 #include "./cisco/session/open_req.hpp"
@@ -22,28 +22,28 @@ using namespace cisco::common;
 int main(int argc, char **argv) {
     spdlog::set_level(spdlog::level::level_enum::debug);
 
-    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
-    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
-    channel::EventChannel<channel::CommandEvent>::getInstance()->poll();
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->poll();
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->poll();
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->poll();
 
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
-    channel::EventChannel<channel::CommandEvent>::getInstance()->publish(
-        channel::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
+    channel::EventChannel<channel::event::CommandEvent>::getInstance()->publish(
+        channel::event::CommandEvent{});
 
     const auto *loader = util::IniLoader::getInstance();
     const string side_a_ip = loader->get("cti", "side.a.ip", "localhost"s);
@@ -130,8 +130,8 @@ int main(int argc, char **argv) {
                 }
             }
             spdlog::debug(ss.str());
-            channel::EventChannel<channel::CommandEvent>::getInstance()
-                ->publish(channel::CommandEvent{});
+            channel::EventChannel<channel::event::CommandEvent>::getInstance()
+                ->publish(channel::event::CommandEvent{});
         }
     }
 

@@ -2,7 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace channel {
+namespace channel::event {
 CommandEvent::CommandEvent() {}
 
 void CommandEvent::handleEvent() { spdlog::debug("Handled"); }
