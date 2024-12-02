@@ -3,7 +3,7 @@
 #ifndef _CTM_CHANNEL_EVENT_EVENT_HPP_
 #define _CTM_CHANNEL_EVENT_EVENT_HPP_
 
-#include <concepts>
+#include <type_traits>
 
 namespace channel::event {
 /**
@@ -23,12 +23,6 @@ class Event {
      *
      */
     virtual ~Event() = default;
-
-    /**
-     * @brief 이벤트 처리 메소드
-     *
-     */
-    virtual void handleEvent() = 0;
 
   protected:
   private:

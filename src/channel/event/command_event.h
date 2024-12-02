@@ -11,8 +11,6 @@ class CommandEvent : public Event {
     CommandEvent();
     virtual ~CommandEvent() = default;
 
-    virtual void handleEvent() override;
-
   protected:
   private:
 };

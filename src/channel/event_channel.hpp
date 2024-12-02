@@ -5,6 +5,7 @@
 
 #include "../template/singleton.hpp"
 #include "./event/event.hpp"
+#include "./subscriber.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -21,69 +22,91 @@ namespace channel {
  */
 template <event::DerivedEvent T>
 class EventChannel : public tmpl::Singleton<EventChannel<T>> {
-  public:
-    /**
-     * @brief Construct a new Event Channel object
-     *
-     */
-    EventChannel() {}
-    /**
-     * @brief Destroy the Event Channel object
-     *
-     */
-    virtual ~EventChannel() = default;
+public:
+  /**
+   * @brief Construct a new Event Channel object
+   *
+   */
+  EventChannel() {}
+  /**
+   * @brief Destroy the Event Channel object
+   *
+   */
+  virtual ~EventChannel() = default;
 
-    /**
-     * @brief 이벤트 채널 폴링
-     *
-     */
-    void poll() noexcept {
-        // 이미 실행중인 경우 추가 스레드 생성하지 않음
-        if (is_launched.load(std::memory_order_acquire)) {
-            return;
+  /**
+   * @brief 이벤트 채널 폴링
+   *
+   */
+  void poll() noexcept {
+    // 이미 실행중인 경우 추가 스레드 생성하지 않음
+    if (is_launched.load(std::memory_order_acquire)) {
+      return;
+    }
+
+    is_launched.store(true, std::memory_order_release);
+
+    // Polling 스레드 생성
+    std::thread t{[&]() {
+      spdlog::debug("Event channel polling thread launched");
+
+      while (true) {
+        std::unique_lock lk{channel_mtx};
+
+        channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
+
+        const event::Event &event = event_queue.front();
+
+        // 구독자가 이벤트를 처리한다
+        subscriber_mtx.lock();
+        for (Subscriber &subscriber : subscribers) {
+          subscriber.handleEvent(event);
         }
+        subscriber_mtx.unlock();
 
-        is_launched.store(true, std::memory_order_release);
+        event_queue.pop();
 
-        // Polling 스레드 생성
-        std::thread t{[&]() {
-            spdlog::debug("Event channel polling thread launched");
+        lk.unlock();
+      }
+    }};
 
-            while (true) {
-                std::unique_lock lk{channel_mtx};
+    t.detach();
+  }
 
-                channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
+  /**
+   * @brief 이벤트 채널 이벤트 배포
+   *
+   * @param event
+   */
+  void publish(const T &event) noexcept {
+    channel_mtx.lock();
+    event_queue.push(event);
+    channel_mtx.unlock();
 
-                event_queue.front().handleEvent();
-                event_queue.pop();
+    channel_cv.notify_one();
+  }
 
-                lk.unlock();
-            }
-        }};
+  /**
+   * @brief 이벤트 채널 구독
+   *
+   * @param subscriber
+   */
+  void subscribe(const Subscriber &subscriber) {
+    subscriber_mtx.lock();
+    subscribers.emplace_back(subscriber);
+    subscriber_mtx.unlock();
+  }
 
-        t.detach();
-    }
+protected:
+  std::queue<T> event_queue{};
+  std::mutex channel_mtx{};
+  std::condition_variable channel_cv{};
+  std::atomic_bool is_launched{false};
 
-    /**
-     * @brief 이벤트 채널 이벤트 배포
-     *
-     * @param event
-     */
-    void publish(const T &event) noexcept {
-        channel_mtx.lock();
-        event_queue.push(event);
-        channel_mtx.unlock();
+  std::vector<Subscriber> subscribers{};
+  std::mutex subscriber_mtx{};
 
-        channel_cv.notify_one();
-    }
-
-  protected:
-    std::queue<T> event_queue{};
-    std::mutex channel_mtx{};
-    std::condition_variable channel_cv{};
-    std::atomic_bool is_launched{false};
-
-  private:
+private:
 };
 } // namespace channel
 
