@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace util {
-IniLoader::IniLoader() : reader(filesystem::path{"./res/conf/ctm.ini"}) {}
+IniLoader::IniLoader() : reader(filesystem::path{"./res/conf/ctm.ini"}.string()) {}
 
 template <>
 const string IniLoader::get(const string_view &section, const string_view &key,
