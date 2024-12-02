@@ -66,7 +66,7 @@ void CTIClient::connect() noexcept {
 
   if (!client_socket.poll(connection_timespan,
                           Poco::Net::Socket::SELECT_WRITE)) {
-    // TODO: 채널 이벤트 전송
+    // TODO: 오류 채널 이벤트 전송
     return;
   }
   client_socket.setLinger(true, 3);
@@ -99,46 +99,55 @@ void CTIClient::connect() noexcept {
     vector<byte> buffer{4'096};
 
     while (is_connected.load(memory_order_acquire)) {
-      // 메시지 수신되는 건이 없다면 HEARTBEAT_REQ 를 주기적으로 전송
-      if (!client_socket.poll(heartbeat_timespan,
-                              Poco::Net::Socket::SELECT_READ)) {
-        invoke_id++;
-        invoke_id %= 1'000;
+      try {
 
-        cisco::session::HeartbeatReq heartbeat_req{};
-        heartbeat_req.setInvokeID(invoke_id + 0x4F00'0000);
+        // 메시지 수신되는 건이 없다면 HEARTBEAT_REQ 를 주기적으로 전송
+        if (!client_socket.poll(heartbeat_timespan,
+                                Poco::Net::Socket::SELECT_READ)) {
+          invoke_id++;
+          invoke_id %= 1'000;
 
-        const vector<byte> packet = cisco::common::serialize(heartbeat_req);
-        client_socket.sendBytes(packet.data(), packet.size());
+          cisco::session::HeartbeatReq heartbeat_req{};
+          heartbeat_req.setInvokeID(invoke_id + 0x4F00'0000);
 
-        continue;
-      }
+          const vector<byte> packet = cisco::common::serialize(heartbeat_req);
+          client_socket.sendBytes(packet.data(), packet.size());
 
-      // 수신된 패킷 디버그 로그 출력
-      size_t length = client_socket.receiveBytes(buffer.data(), buffer.size());
-
-      stringstream ss{};
-      for (int i = 0; i < length; i++) {
-        ss << std::setfill('0') << std::setw(2) << std::hex
-           << static_cast<int32_t>(buffer.at(i)) << " ";
-
-        if (i % 4 == 3) {
-          ss << " ";
+          continue;
         }
 
-        if (i % 16 == 15) {
-          ss << "\n";
+        // 수신된 패킷 디버그 로그 출력
+        size_t length =
+            client_socket.receiveBytes(buffer.data(), buffer.size());
+
+        stringstream ss{};
+        for (int i = 0; i < length; i++) {
+          ss << std::setfill('0') << std::setw(2) << std::hex
+             << static_cast<int32_t>(buffer.at(i)) << " ";
+
+          if (i % 4 == 3) {
+            ss << " ";
+          }
+
+          if (i % 16 == 15) {
+            ss << "\n";
+          }
         }
+        spdlog::debug("Received packet\n{}", ss.str());
+
+        // CTI 이벤트 배포
+        std::vector<std::byte> received_packet{};
+        std::move(buffer.cbegin(), buffer.cbegin() + length,
+                  std::back_inserter(received_packet));
+
+        channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
+            channel::event::CTIEvent{received_packet});
+      } catch (const exception &e) {
+        // 커넥션 실패 시 처리
+        spdlog::error("CTI Client exception: {}", e.what());
+        is_connected.store(false, memory_order_release);
+        // TODO: 오류 채널 이벤트 전송
       }
-      spdlog::debug("Received packet\n{}", ss.str());
-
-      // CTI 이벤트 배포
-      std::vector<std::byte> received_packet{};
-      std::move(buffer.cbegin(), buffer.cbegin() + length,
-                std::back_inserter(received_packet));
-
-      channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
-          channel::event::CTIEvent{received_packet});
     }
   }};
 
