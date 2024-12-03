@@ -171,47 +171,6 @@ void CTIClient::connect() noexcept {
 }
 
 /**
- * @brief 이벤트를 핸들링 한다
- *
- * @param event
- */
-void CTIClient::handleEvent(const channel::event::Event *event) {
-  switch (event->getEventType()) {
-  case channel::event::EventType::CTI_EVENT:
-    spdlog::debug("CTI_Event received. cti_server_host: {}, message_type: {}",
-                  cti_server_host,
-                  static_cast<uint32_t>(
-                      dynamic_cast<const channel::event::CTIEvent *>(event)
-                          ->getMessageType()));
-    break;
-  case channel::event::EventType::ERROR_EVENT:
-    switch (dynamic_cast<const channel::event::ErrorEvent *>(event)
-                ->getErrorType()) {
-    case channel::event::ErrorType::CTI_ERROR:
-      spdlog::debug(
-          "CTI_Error_Event received. cti_server_host:{}, error_host: {}, "
-          "cti_error_type: {}",
-          cti_server_host,
-          dynamic_cast<const channel::event::CTIErrorEvent *>(event)
-              ->getErrorHost(),
-          static_cast<int32_t>(
-              dynamic_cast<const channel::event::CTIErrorEvent *>(event)
-                  ->getCTIErrorType()));
-      break;
-    case channel::event::ErrorType::INTERNAL_ERROR:
-      break;
-    case channel::event::ErrorType::CLIENT_ERROR:
-      break;
-    }
-    break;
-  default:
-    spdlog::debug("Unknown Event received. cti_server_host: {}",
-                  cti_server_host);
-    break;
-  }
-}
-
-/**
  * @brief CTI 서버 접속 해제
  *
  */

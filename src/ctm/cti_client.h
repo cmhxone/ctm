@@ -3,8 +3,6 @@
 #ifndef _CTM_CTM_CTI_CLIENT_H_
 #define _CTM_CTM_CTI_CLIENT_H_
 
-#include "../channel/subscriber.hpp"
-
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Timespan.h>
 
@@ -13,7 +11,7 @@
 
 
 namespace ctm {
-class CTIClient : public channel::Subscriber {
+class CTIClient {
 public:
   /**
    * @brief Construct a new CTIClient object
@@ -46,13 +44,6 @@ public:
    *
    */
   void disconnect() noexcept;
-
-  /**
-   * @brief 채널 이벤트 핸들링
-   *
-   * @param event
-   */
-  virtual void handleEvent(const channel::event::Event *event) override;
 
 protected:
 private:
