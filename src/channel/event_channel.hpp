@@ -40,7 +40,7 @@ public:
    */
   void poll() noexcept {
     // 이미 실행중인 경우 추가 스레드 생성하지 않음
-    if (is_launched.load(std::memory_order_acquire)) {
+    if (isLaunched()) {
       return;
     }
 
@@ -50,28 +50,34 @@ public:
     std::thread t{[&]() {
       spdlog::debug("Event channel polling thread launched");
 
-      while (true) {
-        std::unique_lock lk{channel_mtx};
+      while (isLaunched()) {
+          std::unique_lock lk{channel_mtx};
 
-        channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
+          channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
 
-        const event::Event *event = &event_queue.front();
+          const event::Event *event = &event_queue.front();
 
-        // 구독자가 이벤트를 처리한다
-        subscriber_mtx.lock();
-        for (Subscriber *subscriber : subscribers) {
-          subscriber->handleEvent(event);
+          // 구독자가 이벤트를 처리한다
+          subscriber_mtx.lock();
+          for (Subscriber *subscriber : subscribers) {
+            subscriber->handleEvent(event);
+          }
+          subscriber_mtx.unlock();
+
+          event_queue.pop();
+
+          lk.unlock();
         }
-        subscriber_mtx.unlock();
-
-        event_queue.pop();
-
-        lk.unlock();
-      }
     }};
 
     t.detach();
   }
+
+  /**
+   * @brief 이벤트 채널 폴링 종료
+   *
+   */
+  void stop() noexcept { is_launched.store(false, std::memory_order_release); }
 
   /**
    * @brief 이벤트 채널 이벤트 배포
@@ -105,6 +111,16 @@ protected:
 
   std::vector<Subscriber *> subscribers{};
   std::recursive_mutex subscriber_mtx{};
+
+  /**
+   * @brief 폴링 스레드 실행 여부 반환
+   *
+   * @return true
+   * @return false
+   */
+  constexpr bool isLaunched() const {
+    return is_launched.load(std::memory_order_acquire);
+  }
 
 private:
 };
