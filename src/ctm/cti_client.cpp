@@ -76,7 +76,7 @@ void CTIClient::connect() noexcept {
     client_socket.connect(Poco::Net::SocketAddress{cti_server_host},
                           connection_timespan);
   } catch (const exception &e) {
-    spdlog::error("Unabled to connect CTI Server. server_host: {}",
+    spdlog::error("Unabled to connect CTI Server. cti_server_host: {}",
                   getCTIServerHost());
     EventChannel<event::CTIErrorEvent>::getInstance()->publish(
         event::CTIErrorEvent{
