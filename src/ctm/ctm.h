@@ -3,17 +3,43 @@
 #ifndef _CTM_CTM_CTM_H_
 #define _CTM_CTM_CTM_H_
 
+#include "../channel/subscriber.hpp"
+#include "./cti_client.h"
+
+#include <memory>
+
 namespace ctm {
-class CTM {
-  public:
-    CTM();
-    virtual ~CTM() = default;
+/**
+ * @brief CTM 서버 클래스
+ *
+ */
+class CTM : public channel::Subscriber {
+public:
+  /**
+   * @brief Construct a new CTM object
+   *
+   */
+  CTM();
 
-    const CTM &operator=(const CTM &) = delete;
-    CTM(const CTM &) = delete;
+  /**
+   * @brief Destroy the CTM object
+   *
+   */
+  virtual ~CTM() = default;
 
-  protected:
-  private:
+  const CTM &operator=(const CTM &) = delete;
+  CTM(const CTM &) = delete;
+
+  /**
+   * @brief 이벤트 핸들러
+   *
+   * @param event
+   */
+  virtual void handleEvent(const channel::event::Event *event) override;
+
+protected:
+private:
+  std::unique_ptr<CTIClient> cti_client;
 };
 } // namespace ctm
 

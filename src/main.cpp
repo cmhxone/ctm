@@ -1,7 +1,8 @@
 #include "./channel/event_channel.hpp"
-#include "./ctm/cti_client.h"
 #include "channel/event/cti_error_event.hpp"
 #include "channel/event/cti_event.hpp"
+
+#include "./ctm/ctm.h"
 
 #include <chrono>
 #include <spdlog/spdlog.h>
@@ -10,24 +11,23 @@
 #include <thread>
 
 using namespace std;
+using namespace channel::event;
 
 int main(int argc, char **argv) {
-    spdlog::set_level(spdlog::level::level_enum::debug);
-    channel::EventChannel<channel::event::CTIEvent>::getInstance()->poll();
-    channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()->poll();
+  spdlog::set_level(spdlog::level::level_enum::debug);
 
-    ctm::CTIClient client{};
-    channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
-        &client);
-    channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
-        ->subscribe(&client);
+  channel::EventChannel<CTIEvent>::getInstance()->poll();
+  channel::EventChannel<CTIErrorEvent>::getInstance()->poll();
 
-    client.connect();
+  ctm::CTM ctm{};
 
-    while (true) {
-        this_thread::sleep_for(chrono::milliseconds{100});
-    }
+  channel::EventChannel<CTIEvent>::getInstance()->subscribe(&ctm);
+  channel::EventChannel<CTIErrorEvent>::getInstance()->subscribe(&ctm);
 
-    spdlog::debug("Done");
-    return EXIT_SUCCESS;
+  while (true) {
+    this_thread::sleep_for(chrono::milliseconds{100});
+  }
+
+  spdlog::debug("Done");
+  return EXIT_SUCCESS;
 }
