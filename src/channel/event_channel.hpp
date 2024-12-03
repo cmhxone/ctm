@@ -99,12 +99,12 @@ public:
 
 protected:
   std::queue<T> event_queue{};
-  std::mutex channel_mtx{};
-  std::condition_variable channel_cv{};
+  std::recursive_mutex channel_mtx{};
+  std::condition_variable_any channel_cv{};
   std::atomic_bool is_launched{false};
 
   std::vector<Subscriber *> subscribers{};
-  std::mutex subscriber_mtx{};
+  std::recursive_mutex subscriber_mtx{};
 
 private:
 };
