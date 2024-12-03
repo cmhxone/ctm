@@ -3,8 +3,11 @@
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/error_event.hpp"
 #include "./client_state.hpp"
-#include "cti_client.h"
+#include "./cti_client.h"
+
+#include <chrono>
 #include <memory>
+#include <thread>
 
 using namespace std;
 using namespace channel::event;
@@ -40,6 +43,12 @@ void CTM::handleEvent(const Event *event) {
 
       // 이중화 절체
       ClientState::getInstance()->toggleActive();
+
+      // CG는 곧바로 SideB로 절체되지 않는다
+      // 내부적인 동기화 작업에 일정 시간이 소요됨으로 인해
+      // 스레드 sleep 코드를 추가하였다
+      // 안전하지 않음. 유의바람.
+      this_thread::sleep_for(chrono::milliseconds{500});
 
       // CTI Client 재생성
       cti_client = make_unique<CTIClient>();
