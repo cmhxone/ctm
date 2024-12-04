@@ -73,6 +73,8 @@ void CTM::handleEvent(const Event *event) {
       break;
     }
     break;
+  default:
+    break;
   }
 }
 } // namespace ctm
