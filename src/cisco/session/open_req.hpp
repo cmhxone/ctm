@@ -397,11 +397,4 @@ cisco::common::serialize(const cisco::session::OpenReq &open_req) {
     return result;
 }
 
-template <>
-inline const cisco::session::OpenReq
-cisco::common::deserialize(const std::vector<std::byte> &bytes) {
-    // FIXME: 수정하시오
-    return cisco::session::OpenReq{};
-}
-
 #endif

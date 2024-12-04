@@ -83,10 +83,4 @@ cisco::common::serialize(const cisco::session::HeartbeatReq &heartbeat_req) {
     return result;
 }
 
-template <>
-inline const cisco::session::HeartbeatReq
-cisco::common::deserialize(const std::vector<std::byte> &bytes) {
-    return cisco::session::HeartbeatReq{};
-}
-
 #endif
