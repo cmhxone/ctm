@@ -18,8 +18,8 @@ add_executable(
     # CTM
     src/ctm/ctm.cpp
     src/ctm/cti_client.cpp
-    src/ctm/tcp_acceptor.cpp
-    src/ctm/tcp_handler.cpp
+    src/ctm/acceptor/tcp_acceptor.cpp
+    src/ctm/handler/tcp_handler.cpp
 
     # util
     src/util/ini_loader.cpp

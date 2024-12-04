@@ -1,5 +1,5 @@
 #include "./tcp_acceptor.h"
-#include "../util/ini_loader.h"
+#include "../../util/ini_loader.h"
 
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/SocketAcceptor.h>
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace channel::event;
 
-namespace ctm {
+namespace ctm::acceptor {
 /**
  * @brief Construct a new TCPAcceptor::TCPAcceptor object
  *

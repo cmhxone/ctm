@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Poco/NObserver.h>
-#ifndef _CTM_CTM_HANDLER_HPP_
-#define _CTM_CTM_HANDLER_HPP_
+#ifndef _CTM_CTM_HANDLER_HANDLER_HPP_
+#define _CTM_CTM_HANDLER_HANDLER_HPP_
 
 #include <Poco/AutoPtr.h>
+#include <Poco/NObserver.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/StreamSocket.h>
@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace ctm {
+namespace ctm::handler {
 /**
  * @brief 서버 소켓 핸들러, ServerSocketAcceptor에 의해 클라이언트 커넥션이
  * 생성되는 순간 세션별로 하나의 인스턴스가 생성된다
@@ -76,6 +76,6 @@ protected:
 
 private:
 };
-} // namespace ctm
+} // namespace ctm::handler
 
 #endif

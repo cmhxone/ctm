@@ -4,8 +4,9 @@
 #define _CTM_CTM_CTM_H_
 
 #include "../channel/subscriber.hpp"
+#include "./acceptor/acceptor.hpp"
 #include "./cti_client.h"
-#include "./acceptor.hpp"
+
 
 #include <memory>
 #include <vector>
@@ -42,7 +43,7 @@ public:
 protected:
 private:
   std::unique_ptr<CTIClient> cti_client;
-  std::vector<std::unique_ptr<Acceptor>> acceptors;
+  std::vector<std::unique_ptr<acceptor::Acceptor>> acceptors;
 };
 } // namespace ctm
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CTM_CTM_TCP_HANDLER_H_
-#define _CTM_CTM_TCP_HANDLER_H_
+#ifndef _CTM_CTM_HANDLER_TCP_HANDLER_H_
+#define _CTM_CTM_HANDLER_TCP_HANDLER_H_
 
 #include "./handler.hpp"
 
@@ -10,7 +10,7 @@
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/StreamSocket.h>
 
-namespace ctm {
+namespace ctm::handler {
 class TCPHandler : public Handler {
 public:
   /**
@@ -55,6 +55,6 @@ public:
 protected:
 private:
 };
-} // namespace ctm
+} // namespace ctm::handler
 
 #endif

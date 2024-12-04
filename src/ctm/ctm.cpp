@@ -3,10 +3,10 @@
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/error_event.hpp"
 #include "../util/ini_loader.h"
+#include "./acceptor/acceptor.hpp"
+#include "./acceptor/tcp_acceptor.h"
 #include "./client_state.hpp"
 #include "./cti_client.h"
-#include "./tcp_acceptor.h"
-#include "acceptor.hpp"
 
 #include <chrono>
 #include <memory>
@@ -26,10 +26,10 @@ CTM::CTM() {
   cti_client->connect();
 
   if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
-    acceptors.emplace_back(make_unique<TCPAcceptor>());
+    acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
   }
 
-  for (unique_ptr<Acceptor> &acceptor : acceptors) {
+  for (unique_ptr<acceptor::Acceptor> &acceptor : acceptors) {
     acceptor->accept();
   }
 }

@@ -1,17 +1,17 @@
 #pragma once
 
-#ifndef _CTM_CTM_TCP_ACCEPTOR_H_
-#define _CTM_CTM_TCP_ACCEPTOR_H_
+#ifndef _CTM_CTM_ACCEPTOR_TCP_ACCEPTOR_H_
+#define _CTM_CTM_ACCEPTOR_TCP_ACCEPTOR_H_
 
 #include "./acceptor.hpp"
-#include "./tcp_handler.h"
+#include "../handler/tcp_handler.h"
 
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/SocketAcceptor.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Thread.h>
 
-namespace ctm {
+namespace ctm::acceptor {
 class TCPAcceptor : public Acceptor {
 public:
   /**
@@ -43,7 +43,7 @@ protected:
 private:
   Poco::Net::ServerSocket server_socket;
   Poco::Net::SocketReactor server_socket_reactor;
-  Poco::Net::SocketAcceptor<TCPHandler> server_socket_acceptor;
+  Poco::Net::SocketAcceptor<handler::TCPHandler> server_socket_acceptor;
   Poco::Thread reactor_thread;
 };
 } // namespace ctm

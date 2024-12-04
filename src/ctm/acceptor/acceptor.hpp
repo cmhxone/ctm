@@ -1,11 +1,11 @@
 #pragma once
 
-#ifndef _CTM_CTM_ACCEPTOR_HPP_
-#define _CTM_CTM_ACCEPTOR_HPP_
+#ifndef _CTM_CTM_ACCEPTOR_ACCEPTOR_HPP_
+#define _CTM_CTM_ACCEPTOR_ACCEPTOR_HPP_
 
-#include "../channel/subscriber.hpp"
+#include "../../channel/subscriber.hpp"
 
-namespace ctm {
+namespace ctm::acceptor {
 /**
  * @brief 클라이언트 수신 서버 추상 클래스
  *
