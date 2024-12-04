@@ -12,9 +12,7 @@
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/SocketNotification.h>
 
-#include <algorithm>
 #include <chrono>
-#include <iterator>
 #include <spdlog/spdlog.h>
 
 #include <atomic>
@@ -207,12 +205,9 @@ void CTIClient::onReadableNotification(
                 ss.str());
 
   // CTI 이벤트 배포
-  std::vector<std::byte> received_packet{};
-  std::move(receive_buffer.cbegin(), receive_buffer.cbegin() + length,
-            std::back_inserter(received_packet));
-
   channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
-      channel::event::CTIEvent{received_packet});
+      channel::event::CTIEvent{std::vector<std::byte>{
+          receive_buffer.cbegin(), receive_buffer.cbegin() + length}});
 }
 
 /**

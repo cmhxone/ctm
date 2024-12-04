@@ -1,6 +1,7 @@
 #include "./channel/event/cti_error_event.hpp"
 #include "./channel/event/cti_event.hpp"
 #include "./channel/event_channel.hpp"
+#include "./ctm/bridge/message_bridge.hpp"
 #include "./ctm/ctm.h"
 
 #include <spdlog/spdlog.h>
@@ -20,7 +21,9 @@ int main(int argc, char **argv) {
 
   ctm::CTM ctm{};
 
-  channel::EventChannel<CTIEvent>::getInstance()->subscribe(&ctm);
+  channel::EventChannel<CTIEvent>::getInstance()->subscribe(
+      ctm::bridge::MessageBridge::getInstance());
+  //   channel::EventChannel<CTIEvent>::getInstance()->subscribe(&ctm);
   channel::EventChannel<CTIErrorEvent>::getInstance()->subscribe(&ctm);
 
   while (true) {

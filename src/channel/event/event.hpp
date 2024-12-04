@@ -12,8 +12,10 @@ namespace channel::event {
  *
  */
 enum class EventType : std::int32_t {
-  CTI_EVENT,
-  ERROR_EVENT,
+  CTI_EVENT,    // CTI 서버로부터 발생하는 이벤트
+  ERROR_EVENT,  // 전역 오류 이벤트
+  BRIDGE_EVENT, // 메시지 브릿지로부터 발생하는 이벤트
+  CLIENT_EVENT, // CTM 클라이언트로부터 발생하는 이벤트
 };
 
 /**

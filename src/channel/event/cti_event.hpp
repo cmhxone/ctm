@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <iterator>
 #ifndef _CTM_CHANNEL_EVENT_CTI_EVENT_HPP_
 #define _CTM_CHANNEL_EVENT_CTI_EVENT_HPP_
 
@@ -48,12 +46,8 @@ public:
    * @return constexpr cisco::common::MessageType
    */
   constexpr cisco::common::MessageType getMessageType() const {
-    std::vector<std::byte> message_type_packet{};
-    std::move(packet.cbegin() + 4, packet.cbegin() + 8,
-              std::back_inserter(message_type_packet));
-
     return cisco::common::deserialize<cisco::common::MessageType>(
-        message_type_packet);
+        std::vector<std::byte>{packet.cbegin() + 4, packet.cbegin() + 8});
   }
 
 protected:
