@@ -7,6 +7,7 @@
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/StreamSocket.h>
+#include <Poco/Thread.h>
 #include <Poco/Timespan.h>
 
 #include <atomic>
@@ -26,7 +27,7 @@ public:
    * @brief Destroy the CTIClient object
    *
    */
-  virtual ~CTIClient() = default;
+  virtual ~CTIClient();
 
   const CTIClient &operator=(const CTIClient &) = delete;
   CTIClient(const CTIClient &) = delete;
@@ -101,6 +102,8 @@ private:
   std::vector<std::byte> receive_buffer{4'096};
   std::atomic_uint32_t invoke_id{0};
   std::atomic<FiniteState> current_state{FiniteState::INITIALIZED};
+
+  Poco::Thread reactor_thread;
 };
 } // namespace ctm
 

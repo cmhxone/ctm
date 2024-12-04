@@ -34,7 +34,10 @@ TCPAcceptor::TCPAcceptor()
  * @brief Destroy the TCPAcceptor::TCPAcceptor object
  *
  */
-TCPAcceptor::~TCPAcceptor() { reactor_thread.join(); }
+TCPAcceptor::~TCPAcceptor() {
+  server_socket_reactor.stop();
+  reactor_thread.join();
+}
 
 /**
  * @brief 클라이언트 접속을 처리한다

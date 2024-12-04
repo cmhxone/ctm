@@ -104,8 +104,8 @@ void CTIClient::connect() noexcept {
       Poco::NObserver<CTIClient, Poco::Net::ShutdownNotification>{
           *this, &CTIClient::onShutdownNotification});
 
-  thread reactor_thread{[&]() { client_socket_reactor.run(); }};
-  reactor_thread.detach();
+  // Poco 스레드를 사용해 처리해야 예외가 발생하지 않는다.
+  reactor_thread.start(client_socket_reactor);
 
   // 접속 중 플래그 변경
   current_state.store(FiniteState::CONNECTED, memory_order::release);
@@ -148,6 +148,15 @@ void CTIClient::connect() noexcept {
   heartbeat_thread.detach();
 
   spdlog::debug("Sent OPEN_REQ message. cti_server_host: {}", cti_server_host);
+}
+
+/**
+ * @brief Destroy the CTIClient::CTIClient object
+ *
+ */
+CTIClient::~CTIClient() {
+  client_socket_reactor.stop();
+  reactor_thread.join();
 }
 
 /**
