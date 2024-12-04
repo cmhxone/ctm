@@ -6,6 +6,7 @@
 #include "../../channel/event/cti_event.hpp"
 #include "../../channel/event/event.hpp"
 #include "../../channel/subscriber.hpp"
+#include "../../cisco/message/agent_state_event.hpp"
 #include "../../cisco/session/heartbeat_conf.hpp"
 #include "../../template/singleton.hpp"
 
@@ -45,12 +46,21 @@ public:
       switch (cti_event->getMessageType()) {
       // Heartbeat 응답
       case cisco::common::MessageType::HEARTBEAT_CONF: {
-
         const cisco::session::HeartbeatConf heart_beat_conf =
             cisco::common::deserialize<cisco::session::HeartbeatConf>(
                 cti_event->getPacket());
         spdlog::debug("Heartbeat conf received. invoke_id: {}",
                       heart_beat_conf.getInvokeID());
+      } break;
+      case cisco::common::MessageType::AGENT_STATE_EVENT: {
+        const cisco::message::AgentStateEvent agent_state_event =
+            cisco::common::deserialize<cisco::message::AgentStateEvent>(
+                cti_event->getPacket());
+        spdlog::debug("Agent state event received. agent_state: {}, "
+                      "event_reason_code: {}, icm_agent_id: {}",
+                      agent_state_event.getAgentState(),
+                      agent_state_event.getEventReasonCode(),
+                      agent_state_event.getICMAgentID());
       } break;
       default:
         spdlog::debug(
