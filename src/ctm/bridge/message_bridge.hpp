@@ -58,8 +58,6 @@ public:
             static_cast<std::int32_t>(cti_event->getMessageType()));
         break;
       }
-
-      spdlog::debug("");
     } break;
       // 클라이언트 메시지는 파싱하여 CTI 서버에 던져준다
     case channel::event::EventType::CLIENT_EVENT:
