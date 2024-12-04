@@ -5,8 +5,10 @@
 
 #include "../channel/subscriber.hpp"
 #include "./cti_client.h"
+#include "./acceptor.hpp"
 
 #include <memory>
+#include <vector>
 
 namespace ctm {
 /**
@@ -40,6 +42,7 @@ public:
 protected:
 private:
   std::unique_ptr<CTIClient> cti_client;
+  std::vector<std::unique_ptr<Acceptor>> acceptors;
 };
 } // namespace ctm
 

@@ -2,8 +2,11 @@
 
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/error_event.hpp"
+#include "../util/ini_loader.h"
 #include "./client_state.hpp"
 #include "./cti_client.h"
+#include "./tcp_acceptor.h"
+#include "acceptor.hpp"
 
 #include <chrono>
 #include <memory>
@@ -21,10 +24,18 @@ CTM::CTM() {
   // CTI Client 생성 및 접속
   cti_client = make_unique<CTIClient>();
   cti_client->connect();
+
+  if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
+    acceptors.emplace_back(make_unique<TCPAcceptor>());
+  }
+
+  for (unique_ptr<Acceptor> &acceptor : acceptors) {
+    acceptor->accept();
+  }
 }
 
 /**
- * @brief
+ * @brief 이벤트 핸들러
  *
  * @param event
  */

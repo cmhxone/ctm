@@ -2,11 +2,13 @@
 #include "../util/ini_loader.h"
 
 #include <Poco/Net/ServerSocket.h>
-
 #include <Poco/Net/SocketAcceptor.h>
+#include <Poco/Thread.h>
+
 #include <spdlog/spdlog.h>
 
 using namespace std;
+using namespace channel::event;
 
 namespace ctm {
 /**
@@ -25,8 +27,23 @@ TCPAcceptor::TCPAcceptor()
 }
 
 /**
+ * @brief Destroy the TCPAcceptor::TCPAcceptor object
+ *
+ */
+TCPAcceptor::~TCPAcceptor() { reactor_thread.join(); }
+
+/**
  * @brief 클라이언트 접속을 처리한다
  *
  */
-void TCPAcceptor::accept() noexcept {}
+void TCPAcceptor::accept() noexcept {
+  reactor_thread.start(server_socket_reactor);
+}
+
+/**
+ * @brief 이벤트 핸들러
+ *
+ * @param event
+ */
+void TCPAcceptor::handleEvent(const Event *event) {}
 } // namespace ctm
