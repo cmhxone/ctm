@@ -21,6 +21,10 @@ TCPAcceptor::TCPAcceptor()
       server_socket_reactor(),
       server_socket_acceptor(server_socket, server_socket_reactor) {
 
+  server_socket.setLinger(true, 3);
+  server_socket.setNoDelay(false);
+  server_socket.setReuseAddress(true);
+
   spdlog::debug(
       "TCP Acceptor constructed. port: {}",
       util::IniLoader::getInstance()->get("server", "tcp.port", 5110));

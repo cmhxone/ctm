@@ -67,6 +67,7 @@ void TCPHandler::onError(
     const Poco::AutoPtr<Poco::Net::ErrorNotification> &notification) {
   spdlog::debug("Client error. client_address: {}",
                 socket.peerAddress().toString());
+  delete this;
 }
 
 /**
@@ -77,6 +78,8 @@ void TCPHandler::onShutdown(
     const Poco::AutoPtr<Poco::Net::ShutdownNotification> &notification) {
   spdlog::debug("Client disconnected. client_address: {}",
                 socket.peerAddress().toString());
+
+  delete this;
 }
 
 } // namespace ctm
