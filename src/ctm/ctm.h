@@ -7,7 +7,6 @@
 #include "./acceptor/acceptor.hpp"
 #include "./cti_client.h"
 
-
 #include <memory>
 #include <vector>
 

@@ -1,12 +1,11 @@
+#include "./channel/event/cti_error_event.hpp"
+#include "./channel/event/cti_event.hpp"
 #include "./channel/event_channel.hpp"
-#include "channel/event/cti_error_event.hpp"
-#include "channel/event/cti_event.hpp"
-
 #include "./ctm/ctm.h"
 
-#include <chrono>
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <thread>
 
