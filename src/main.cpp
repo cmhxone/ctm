@@ -1,3 +1,4 @@
+#include "./channel/event/client_event.hpp"
 #include "./channel/event/cti_error_event.hpp"
 #include "./channel/event/cti_event.hpp"
 #include "./channel/event_channel.hpp"
@@ -18,13 +19,14 @@ int main(int argc, char **argv) {
 
   channel::EventChannel<CTIEvent>::getInstance()->poll();
   channel::EventChannel<CTIErrorEvent>::getInstance()->poll();
+  channel::EventChannel<ClientEvent>::getInstance()->poll();
 
   ctm::CTM ctm{};
 
   channel::EventChannel<CTIEvent>::getInstance()->subscribe(
       ctm::bridge::MessageBridge::getInstance());
-  //   channel::EventChannel<CTIEvent>::getInstance()->subscribe(&ctm);
   channel::EventChannel<CTIErrorEvent>::getInstance()->subscribe(&ctm);
+  channel::EventChannel<ClientEvent>::getInstance()->subscribe(&ctm);
 
   while (true) {
     this_thread::sleep_for(chrono::milliseconds{100});

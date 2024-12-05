@@ -1,5 +1,8 @@
 #include "./tcp_handler.h"
 
+#include "../../channel/event/client_event.hpp"
+#include "../../channel/event_channel.hpp"
+
 #include <Poco/AutoPtr.h>
 #include <Poco/NObserver.h>
 #include <Poco/Net/SocketNotification.h>
@@ -11,6 +14,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace channel::event;
 
 namespace ctm::handler {
 /**
@@ -55,6 +59,10 @@ void TCPHandler::onReadable(
     }
   }
 
+  // 클라이언트 이벤트 발생
+  channel::EventChannel<ClientEvent>::getInstance()->publish(
+      ClientEvent{receive_buffer});
+
   spdlog::debug("Client sent packet. client_address: {}\n{}",
                 socket.peerAddress().toString(), ss.str());
 }
@@ -82,4 +90,4 @@ void TCPHandler::onShutdown(
   delete this;
 }
 
-} // namespace ctm
+} // namespace ctm::handler
