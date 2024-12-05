@@ -1,6 +1,7 @@
 #include "./cti_client.h"
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/cti_event.hpp"
+#include "../channel/event/event.hpp"
 #include "../channel/event_channel.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
 #include "../cisco/session/open_req.hpp"
@@ -119,7 +120,7 @@ void CTIClient::connect() noexcept {
   open_req.setVersionNumber(24);
   open_req.setIdleTimeout(30);
   open_req.setCallMessageMask(0xffff'ffff);
-  open_req.setServicesRequested(0x10);
+  open_req.setServicesRequested(0x10 | 0x04);
   open_req.setAgentStateMask(0x3fff);
   open_req.setConfigMessageMask(15);
   open_req.setClientID("ctmonitor");
@@ -131,6 +132,9 @@ void CTIClient::connect() noexcept {
   // HeartBeat 전송 스레드 실행
   thread heartbeat_thread{[&]() {
     while (getCurrentState() == FiniteState::CONNECTED) {
+      this_thread::sleep_for(
+          chrono::milliseconds{heartbeat_timespan.totalMilliseconds()});
+
       addInvokeID();
 
       cisco::session::HeartbeatReq heartbeat_req{};
@@ -138,9 +142,6 @@ void CTIClient::connect() noexcept {
 
       const vector<byte> packet = cisco::common::serialize(heartbeat_req);
       client_socket.sendBytes(packet.data(), packet.size());
-
-      this_thread::sleep_for(
-          chrono::milliseconds{heartbeat_timespan.totalMilliseconds()});
     }
   }};
   heartbeat_thread.detach();
@@ -242,5 +243,19 @@ void CTIClient::onShutdownNotification(
     const Poco::AutoPtr<Poco::Net::ShutdownNotification> &notification) {
   current_state.store(FiniteState::FINISHED, memory_order::release);
   client_socket_reactor.stop();
+}
+
+/**
+ * @brief 이벤트 핸들러
+ *
+ * @param event
+ */
+void CTIClient::handleEvent(const event::Event *event) {
+  switch (event->getEventType()) {
+  case event::EventType::BRIDGE_EVENT:
+    break;
+  default:
+    break;
+  }
 }
 } // namespace ctm

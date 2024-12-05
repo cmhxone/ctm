@@ -3,6 +3,8 @@
 #ifndef _CTM_CTM_CTI_CLIENT_H_
 #define _CTM_CTM_CTI_CLIENT_H_
 
+#include "../channel/subscriber.hpp"
+
 #include <Poco/AutoPtr.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Net/SocketReactor.h>
@@ -16,7 +18,7 @@
 #include <vector>
 
 namespace ctm {
-class CTIClient {
+class CTIClient : public channel::Subscriber {
 public:
   /**
    * @brief Construct a new CTIClient object
@@ -91,6 +93,13 @@ private:
   void addInvokeID() {
     invoke_id.store(getInvokeID() + 1, std::memory_order_release);
   }
+
+  /**
+   * @brief 이벤트 핸들링
+   *
+   * @param event
+   */
+  virtual void handleEvent(const channel::event::Event *event) override;
 
 private:
   Poco::Net::StreamSocket client_socket{};
