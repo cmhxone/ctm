@@ -121,7 +121,7 @@ public:
    *
    * @return constexpr std::uint16_t
    */
-  constexpr std::uint16_t getDirection() const {
+  constexpr std::uint32_t getDirection() const {
     return this->direction.value_or(0);
   }
   constexpr std::int32_t getFltSkillGroupNumber() const {
@@ -374,7 +374,7 @@ public:
    *
    * @param direction
    */
-  void setDirection(const std::uint16_t direction) {
+  void setDirection(const std::uint32_t direction) {
     this->direction = direction;
   }
   /**
@@ -449,7 +449,7 @@ private:
   std::optional<std::string> agent_instrument;
   std::optional<std::uint32_t> duration;
   std::optional<std::uint16_t> next_agent_state;
-  std::optional<std::uint16_t> direction;
+  std::optional<std::uint32_t> direction;
   std::optional<std::int32_t> flt_skill_group_number;
   std::optional<std::uint32_t> flt_skill_group_id;
   std::optional<std::uint16_t> flt_skill_group_priority;
@@ -598,7 +598,7 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
     } break;
     case cisco::common::TagValue::DIRECTION_TAG: {
       result.setDirection(
-          cisco::common::deserialize<std::uint16_t>(floating_data.getData()));
+          cisco::common::deserialize<std::uint32_t>(floating_data.getData()));
     } break;
     case cisco::common::TagValue::SKILL_GROUP_NUMBER_TAG: {
       result.setFltSkillGroupNumber(
