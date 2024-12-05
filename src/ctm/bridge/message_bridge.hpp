@@ -56,18 +56,19 @@ public:
         const cisco::message::AgentStateEvent agent_state_event =
             cisco::common::deserialize<cisco::message::AgentStateEvent>(
                 cti_event->getPacket());
-        spdlog::debug("Agent state event received. agent_state: {}, "
-                      "event_reason_code: {}, icm_agent_id: {}, agent_id: {}, "
-                      "agent_extension: {}, skill_group_id: {}, "
-                      "skill_Group_number: {}, state_duration: {}",
-                      agent_state_event.getAgentState(),
-                      agent_state_event.getEventReasonCode(),
-                      agent_state_event.getICMAgentID(),
-                      agent_state_event.getAgentID(),
-                      agent_state_event.getAgentExtension(),
-                      agent_state_event.getSkillGroupID(),
-                      agent_state_event.getSkillGroupNumber(),
-                      agent_state_event.getStateDuration());
+        spdlog::debug(
+            "Agent state event received. agent_state: {}, "
+            "event_reason_code: {}, icm_agent_id: {}, agent_id: {}, "
+            "agent_extension: {}, skill_group_id: {}, "
+            "skill_Group_number: {}, state_duration: {}, direction: {}",
+            agent_state_event.getAgentState(),
+            agent_state_event.getEventReasonCode(),
+            agent_state_event.getICMAgentID(), agent_state_event.getAgentID(),
+            agent_state_event.getAgentExtension(),
+            agent_state_event.getSkillGroupID(),
+            agent_state_event.getSkillGroupNumber(),
+            agent_state_event.getStateDuration(),
+            agent_state_event.getDirection());
       } break;
       default:
         spdlog::debug(
