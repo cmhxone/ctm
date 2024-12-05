@@ -3,9 +3,11 @@
 #ifndef _CTM_CTM_BRIDGE_MESSAGE_BRIDGE_HPP_
 #define _CTM_CTM_BRIDGE_MESSAGE_BRIDGE_HPP_
 
+#include "../../channel/event/bridge_event.hpp"
 #include "../../channel/event/client_event.hpp"
 #include "../../channel/event/cti_event.hpp"
 #include "../../channel/event/event.hpp"
+#include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
 #include "../../cisco/control/query_agent_state_conf.hpp"
 #include "../../cisco/message/agent_state_event.hpp"
@@ -42,6 +44,7 @@ public:
     switch (event->getEventType()) {
       // CTI 메시지는 파싱하여 클라이언트들에게 던져준다
     case channel::event::EventType::CTI_EVENT: {
+      spdlog::debug("MessageBridge received CTI Event");
       const channel::event::CTIEvent *cti_event =
           dynamic_cast<const channel::event::CTIEvent *>(event);
 
@@ -62,7 +65,8 @@ public:
             "Agent state event received. agent_state: {}, "
             "event_reason_code: {}, icm_agent_id: {}, agent_id: {}, "
             "agent_extension: {}, skill_group_id: {}, "
-            "skill_Group_number: {}, state_duration: {}, direction: {}",
+            "skill_Group_number: {}, state_duration: {}, direction: {}, "
+            "mrd_id: {}, peripheral_id: {}",
             agent_state_event.getAgentState(),
             agent_state_event.getEventReasonCode(),
             agent_state_event.getICMAgentID(), agent_state_event.getAgentID(),
@@ -70,7 +74,8 @@ public:
             agent_state_event.getSkillGroupID(),
             agent_state_event.getSkillGroupNumber(),
             agent_state_event.getStateDuration(),
-            agent_state_event.getDirection());
+            agent_state_event.getDirection(), agent_state_event.getMRDID(),
+            agent_state_event.getPeripheralID());
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
@@ -95,8 +100,14 @@ public:
     } break;
       // 클라이언트 메시지는 파싱하여 CTI 서버에 던져준다
     case channel::event::EventType::CLIENT_EVENT: {
+      spdlog::debug("MessageBridge received Client Event");
+
       const channel::event::ClientEvent *client_event =
           dynamic_cast<const channel::event::ClientEvent *>(event);
+
+      channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+          ->publish(channel::event::BridgeEvent{
+              channel::event::BridgeEvent::BridgeEventDestination::CTI});
     } break;
       // CTI, 클라이언트 메시지가 아닌 경우 처리하지 않는다
     default:

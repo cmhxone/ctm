@@ -63,7 +63,7 @@ public:
    *
    * @return constexpr std::uint16_t
    */
-  constexpr std::uint16_t getAgentAvailabilityStatus() const {
+  constexpr std::uint32_t getAgentAvailabilityStatus() const {
     return agent_availability_status;
   }
   /**
@@ -209,7 +209,7 @@ public:
    * @param agent_availability_status
    */
   void
-  setAgentAvailabilityStatus(const std::uint16_t agent_availability_status) {
+  setAgentAvailabilityStatus(const std::uint32_t agent_availability_status) {
     this->agent_availability_status = agent_availability_status;
   }
   /**
@@ -333,7 +333,7 @@ private:
   std::uint16_t agent_state;
   std::uint16_t num_skill_groups;
   std::int32_t mrd_id;
-  std::uint16_t agent_availability_status;
+  std::uint32_t agent_availability_status;
   std::uint32_t num_tasks;
   std::uint16_t agent_mode;
   std::uint32_t max_task_limit;
@@ -389,8 +389,7 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
                              bytes.cbegin() + packet_index + field_size}));
   packet_index += field_size;
 
-  field_size = 2;
-  query_agent_state_conf.setAgentAvailabilityStatus(deserialize<std::uint16_t>(
+  query_agent_state_conf.setAgentAvailabilityStatus(deserialize<std::uint32_t>(
       std::vector<std::byte>{bytes.cbegin() + packet_index,
                              bytes.cbegin() + packet_index + field_size}));
   packet_index += field_size;

@@ -4,6 +4,7 @@
 #include "./channel/event_channel.hpp"
 #include "./ctm/bridge/message_bridge.hpp"
 #include "./ctm/ctm.h"
+#include "channel/event/bridge_event.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -20,10 +21,13 @@ int main(int argc, char **argv) {
   channel::EventChannel<CTIEvent>::getInstance()->poll();
   channel::EventChannel<CTIErrorEvent>::getInstance()->poll();
   channel::EventChannel<ClientEvent>::getInstance()->poll();
+  channel::EventChannel<BridgeEvent>::getInstance()->poll();
 
   ctm::CTM ctm{};
 
   channel::EventChannel<CTIEvent>::getInstance()->subscribe(
+      ctm::bridge::MessageBridge::getInstance());
+  channel::EventChannel<ClientEvent>::getInstance()->subscribe(
       ctm::bridge::MessageBridge::getInstance());
   channel::EventChannel<CTIErrorEvent>::getInstance()->subscribe(&ctm);
 

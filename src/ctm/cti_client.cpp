@@ -1,8 +1,10 @@
 #include "./cti_client.h"
+#include "../channel/event/bridge_event.hpp"
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/cti_event.hpp"
 #include "../channel/event/event.hpp"
 #include "../channel/event_channel.hpp"
+#include "../cisco/control/query_agent_state_req.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
 #include "../cisco/session/open_req.hpp"
 #include "../util/ini_loader.h"
@@ -21,6 +23,7 @@
 #include <ios>
 #include <sstream>
 #include <thread>
+#include <vector>
 
 using namespace std;
 using namespace channel;
@@ -56,6 +59,8 @@ CTIClient::CTIClient() {
   this->heartbeat_timespan =
       ini_loader->get("cti", "timeout.heartbeat", 5'000) * 1'000;
   client_socket_reactor.setTimeout(connection_timespan);
+
+  EventChannel<event::BridgeEvent>::getInstance()->subscribe(this);
 
   spdlog::debug("CTIClient constructed. cti_server_host: {}", cti_server_host);
 }
@@ -252,8 +257,30 @@ void CTIClient::onShutdownNotification(
  */
 void CTIClient::handleEvent(const event::Event *event) {
   switch (event->getEventType()) {
-  case event::EventType::BRIDGE_EVENT:
-    break;
+  case event::EventType::BRIDGE_EVENT: {
+    const event::BridgeEvent *bridge_event =
+        dynamic_cast<const event::BridgeEvent *>(event);
+
+    // CTI에게 전달된 이벤트만 핸들링
+    if (bridge_event->getDestination() !=
+        event::BridgeEvent::BridgeEventDestination::CTI) {
+      return;
+    }
+
+    spdlog::debug("Received BridgeEventMessage(dst: CTI)");
+
+    // QUERY_AGENT_STATE_REQ 메시지 전송
+    cisco::control::QueryAgentStateReq query_agent_state_req{};
+    addInvokeID();
+    query_agent_state_req.setInvokeID(getInvokeID());
+    query_agent_state_req.setPeripheralID(5000);
+    query_agent_state_req.setAgentID("1111");
+
+    const vector<byte> query_agent_packet =
+        cisco::common::serialize(query_agent_state_req);
+    client_socket.sendBytes(query_agent_packet.data(),
+                            query_agent_packet.size());
+  } break;
   default:
     break;
   }
