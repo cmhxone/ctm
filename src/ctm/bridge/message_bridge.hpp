@@ -7,6 +7,7 @@
 #include "../../channel/event/cti_event.hpp"
 #include "../../channel/event/event.hpp"
 #include "../../channel/subscriber.hpp"
+#include "../../cisco/control/query_agent_state_conf.hpp"
 #include "../../cisco/message/agent_state_event.hpp"
 #include "../../cisco/session/heartbeat_conf.hpp"
 #include "../../template/singleton.hpp"
@@ -70,6 +71,20 @@ public:
             agent_state_event.getSkillGroupNumber(),
             agent_state_event.getStateDuration(),
             agent_state_event.getDirection());
+      } break;
+      case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
+        const cisco::control::QueryAgentStateConf query_agent_state_conf =
+            cisco::common::deserialize<cisco::control::QueryAgentStateConf>(
+                cti_event->getPacket());
+        spdlog::debug("Query agent state conf. agent_id: {}, agent_state: {}, "
+                      "agent_extension: {}, skill_group_id: {}, "
+                      "skill_group_number: {}, icm_agent_id: {}",
+                      query_agent_state_conf.getAgentID(),
+                      query_agent_state_conf.getAgentState(),
+                      query_agent_state_conf.getAgentExtension(),
+                      query_agent_state_conf.getSkillGroupID(),
+                      query_agent_state_conf.getSkillGroupNumber(),
+                      query_agent_state_conf.getICMAgentID());
       } break;
       default:
         spdlog::debug(
