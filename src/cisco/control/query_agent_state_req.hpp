@@ -3,6 +3,7 @@
 #ifndef _CTM_CISCO_CONTROL_QUERY_AGENT_STATE_REQ_HPP_
 #define _CTM_CISCO_CONTROL_QUERY_AGENT_STATE_REQ_HPP_
 
+#include "../common/floating_data.hpp"
 #include "../common/mhdr.hpp"
 #include "../common/serializable.hpp"
 
@@ -149,22 +150,48 @@ private:
 template <>
 inline const std::vector<std::byte> cisco::common::serialize(
     const cisco::control::QueryAgentStateReq &query_agent_state_req) {
-  std::vector<std::byte> result{};
+  std::vector<std::byte> body{};
 
   std::vector<std::vector<std::byte>> members{};
 
-  members.emplace_back(serialize(query_agent_state_req.getMHDR()));
   members.emplace_back(serialize(query_agent_state_req.getInvokeID()));
   members.emplace_back(serialize(query_agent_state_req.getPeripheralID()));
   members.emplace_back(serialize(query_agent_state_req.getMRDID()));
   members.emplace_back(serialize(query_agent_state_req.getICMAgentID()));
-  members.emplace_back(serialize(query_agent_state_req.getAgentExtension()));
-  members.emplace_back(serialize(query_agent_state_req.getAgentID()));
-  members.emplace_back(serialize(query_agent_state_req.getAgentInstrument()));
+
+  if (query_agent_state_req.getAgentExtension().has_value()) {
+    cisco::common::FloatingData agent_extension{};
+    agent_extension.setTag(TagValue::AGENT_EXTENSION_TAG);
+    agent_extension.setData(
+        query_agent_state_req.getAgentExtension().value_or(""));
+    members.emplace_back(serialize(agent_extension));
+  }
+
+  if (query_agent_state_req.getAgentID().has_value()) {
+
+    cisco::common::FloatingData agent_id{};
+    agent_id.setTag(TagValue::AGENT_ID_TAG);
+    agent_id.setData(query_agent_state_req.getAgentID().value_or(""));
+    members.emplace_back(serialize(agent_id));
+  }
+
+  if (query_agent_state_req.getAgentInstrument().has_value()) {
+    cisco::common::FloatingData agent_instrument{};
+    agent_instrument.setTag(TagValue::AGENT_INSTRUMENT_TAG);
+    agent_instrument.setData(
+        query_agent_state_req.getAgentInstrument().value_or(""));
+    members.emplace_back(serialize(agent_instrument));
+  }
 
   for (const std::vector<std::byte> &member : members) {
-    std::move(member.cbegin(), member.cend(), std::back_inserter(result));
+    std::move(member.cbegin(), member.cend(), std::back_inserter(body));
   }
+
+  MHDR mhdr = query_agent_state_req.getMHDR();
+  mhdr.setMessageLength(body.size());
+
+  std::vector<std::byte> result = serialize(mhdr);
+  std::move(body.cbegin(), body.cend(), std::back_inserter(result));
 
   return result;
 }
