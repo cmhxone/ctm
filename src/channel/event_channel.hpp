@@ -27,57 +27,12 @@ public:
    * @brief Construct a new Event Channel object
    *
    */
-  EventChannel() {}
+  EventChannel() { poll(); }
   /**
    * @brief Destroy the Event Channel object
    *
    */
-  virtual ~EventChannel() = default;
-
-  /**
-   * @brief 이벤트 채널 폴링
-   *
-   */
-  void poll() noexcept {
-    // 이미 실행중인 경우 추가 스레드 생성하지 않음
-    if (isLaunched()) {
-      return;
-    }
-
-    is_launched.store(true, std::memory_order_release);
-
-    // Polling 스레드 생성
-    std::thread t{[&]() {
-      spdlog::debug("Event channel polling thread launched");
-
-      while (isLaunched()) {
-          std::unique_lock lk{channel_mtx};
-
-          channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
-
-          const event::Event *event = &event_queue.front();
-
-          // 구독자가 이벤트를 처리한다
-          subscriber_mtx.lock();
-          for (Subscriber *subscriber : subscribers) {
-            subscriber->handleEvent(event);
-          }
-          subscriber_mtx.unlock();
-
-          event_queue.pop();
-
-          lk.unlock();
-        }
-    }};
-
-    t.detach();
-  }
-
-  /**
-   * @brief 이벤트 채널 폴링 종료
-   *
-   */
-  void stop() noexcept { is_launched.store(false, std::memory_order_release); }
+  virtual ~EventChannel() { stop(); }
 
   /**
    * @brief 이벤트 채널 이벤트 배포
@@ -104,6 +59,51 @@ public:
   }
 
 protected:
+  /**
+   * @brief 이벤트 채널 폴링
+   *
+   */
+  void poll() noexcept {
+    // 이미 실행중인 경우 추가 스레드 생성하지 않음
+    if (isLaunched()) {
+      return;
+    }
+
+    is_launched.store(true, std::memory_order_release);
+
+    // Polling 스레드 생성
+    std::thread t{[&]() {
+      spdlog::debug("Event channel polling thread launched");
+
+      while (isLaunched()) {
+        std::unique_lock lk{channel_mtx};
+
+        channel_cv.wait(lk, [&]() { return !event_queue.empty(); });
+
+        const event::Event *event = &event_queue.front();
+
+        // 구독자가 이벤트를 처리한다
+        subscriber_mtx.lock();
+        for (Subscriber *subscriber : subscribers) {
+          subscriber->handleEvent(event);
+        }
+        subscriber_mtx.unlock();
+
+        event_queue.pop();
+
+        lk.unlock();
+      }
+    }};
+
+    t.detach();
+  }
+
+  /**
+   * @brief 이벤트 채널 폴링 종료
+   *
+   */
+  void stop() noexcept { is_launched.store(false, std::memory_order_release); }
+
   std::queue<T> event_queue{};
   std::recursive_mutex channel_mtx{};
   std::condition_variable_any channel_cv{};
@@ -123,7 +123,7 @@ protected:
   }
 
 private:
-};
+}; // namespace channel
 } // namespace channel
 
 #endif

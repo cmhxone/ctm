@@ -4,7 +4,6 @@
 #include "./channel/event_channel.hpp"
 #include "./ctm/bridge/message_bridge.hpp"
 #include "./ctm/ctm.h"
-#include "channel/event/bridge_event.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -17,11 +16,6 @@ using namespace channel::event;
 
 int main(int argc, char **argv) {
   spdlog::set_level(spdlog::level::level_enum::debug);
-
-  channel::EventChannel<CTIEvent>::getInstance()->poll();
-  channel::EventChannel<CTIErrorEvent>::getInstance()->poll();
-  channel::EventChannel<ClientEvent>::getInstance()->poll();
-  channel::EventChannel<BridgeEvent>::getInstance()->poll();
 
   ctm::CTM ctm{};
 
