@@ -3,6 +3,7 @@
 #ifndef _CTM_CTM_BRIDGE_MESSAGE_BRIDGE_HPP_
 #define _CTM_CTM_BRIDGE_MESSAGE_BRIDGE_HPP_
 
+#include "../../channel/event/client_event.hpp"
 #include "../../channel/event/cti_event.hpp"
 #include "../../channel/event/event.hpp"
 #include "../../channel/subscriber.hpp"
@@ -78,8 +79,10 @@ public:
       }
     } break;
       // 클라이언트 메시지는 파싱하여 CTI 서버에 던져준다
-    case channel::event::EventType::CLIENT_EVENT:
-      break;
+    case channel::event::EventType::CLIENT_EVENT: {
+      const channel::event::ClientEvent *client_event =
+          dynamic_cast<const channel::event::ClientEvent *>(event);
+    } break;
       // CTI, 클라이언트 메시지가 아닌 경우 처리하지 않는다
     default:
       return;
