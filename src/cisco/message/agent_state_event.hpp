@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstring>
 #ifndef _CTM_CISCO_MESSAGE_AGENT_STATE_EVENT_HPP_
 #define _CTM_CISCO_MESSAGE_AGENT_STATE_EVENT_HPP_
 
@@ -10,6 +9,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -30,6 +30,7 @@ public:
    */
   virtual ~AgentStateEvent() = default;
 
+  const cisco::common::MHDR getMHDR() const { return mhdr; }
   constexpr std::uint32_t getMonitorID() const { return monitor_id; }
   constexpr std::uint32_t getPeripheralID() const { return peripheral_id; }
   constexpr std::uint32_t getSessionID() const { return session_id; }
@@ -61,6 +62,103 @@ public:
     return num_flt_skill_groups;
   }
   constexpr std::int32_t getDepartmentID() const { return department_id; }
+  /**
+   * @brief Get the CTI Client Signature object
+   *
+   * @return const std::string
+   */
+  const std::string getCTIClientSignature() const {
+    return this->cti_client_signature->c_str();
+  }
+  /**
+   * @brief Get the Agent ID object
+   *
+   * @return const std::string
+   */
+  const std::string getAgentID() const { return this->agent_id->data(); }
+  /**
+   * @brief Get the Agent Extension object
+   *
+   * @return const std::string
+   */
+  const std::string getAgentExtension() const {
+    return this->agent_extension->data();
+  }
+  /**
+   * @brief Get the Active Terminal object
+   *
+   * @return const std::string
+   */
+  const std::string getActiveTerminal() const {
+    return this->active_terminal->data();
+  }
+  /**
+   * @brief Get the Agent Instrument object
+   *
+   * @return const std::string
+   */
+  const std::string getAgentInstrument() const {
+    return this->agent_instrument->data();
+  }
+  /**
+   * @brief Get the Duration object
+   *
+   * @return constexpr std::uint32_t
+   */
+  constexpr std::uint32_t getDuration() const {
+    return this->duration.value_or(0);
+  }
+  /**
+   * @brief Get the Next Agent State object
+   *
+   * @return constexpr std::uint16_t
+   */
+  constexpr std::uint16_t getNextAgentState() const {
+    return this->next_agent_state.value_or(0);
+  }
+  /**
+   * @brief Get the Direction object
+   *
+   * @return constexpr std::uint16_t
+   */
+  constexpr std::uint16_t getDirection() const {
+    return this->direction.value_or(0);
+  }
+  constexpr std::int32_t getFltSkillGroupNumber() const {
+    return this->flt_skill_group_number.value_or(0);
+  }
+  /**
+   * @brief Get the Flt Skill Group ID object
+   *
+   * @return constexpr std::uint32_t
+   */
+  constexpr std::uint32_t getFltSkillGroupID() const {
+    return this->flt_skill_group_id.value_or(0);
+  }
+  /**
+   * @brief Get the Flt Skill Group Priority object
+   *
+   * @return constexpr std::uint16_t
+   */
+  constexpr std::uint16_t getFltSkillGroupPriority() const {
+    return this->flt_skill_group_priority.value_or(0);
+  }
+  /**
+   * @brief Get the Flt Skill Group State object
+   *
+   * @return constexpr std::uint16_t
+   */
+  constexpr std::uint16_t getFltSkillGroupState() const {
+    return this->flt_skill_group_state.value_or(0);
+  }
+  /**
+   * @brief Get the Max Beyond Task Limit object
+   *
+   * @return constexpr std::uint32_t
+   */
+  constexpr std::uint32_t getMaxBeyondTaskLimit() const {
+    return this->max_beyond_task_limit.value_or(0);
+  }
 
   /**
    * @brief Set the MHDR object
@@ -442,10 +540,11 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
   packet_index += field_size;
 
   // 가변 영역
-  while (packet_index < bytes.size()) {
+  while (packet_index < result.getMHDR().getMessageLength()) {
     const cisco::common::FloatingData floating_data =
         cisco::common::deserialize<cisco::common::FloatingData>(
-            std::vector<std::byte>{bytes.cbegin(), bytes.cend()});
+            std::vector<std::byte>{bytes.cbegin() + packet_index,
+                                   bytes.cend()});
     packet_index += 4 + floating_data.getData().size();
 
     switch (floating_data.getTag()) {

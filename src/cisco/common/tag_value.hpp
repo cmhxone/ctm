@@ -14,7 +14,7 @@ namespace cisco::common {
  * @brief Floating 필드 태그 값
  *
  */
-enum class TagValue : std::uint32_t {
+enum class TagValue : std::uint16_t {
     CLIENT_ID_TAG = 1,
     CLIENT_PASSWORD_TAG = 2,
     CLIENT_SIGNATURE_TAG = 3,
