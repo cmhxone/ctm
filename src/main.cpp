@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
   channel::EventChannel<CTIEvent>::getInstance()->subscribe(
       ctm::bridge::MessageBridge::getInstance());
   channel::EventChannel<CTIErrorEvent>::getInstance()->subscribe(&ctm);
-  channel::EventChannel<ClientEvent>::getInstance()->subscribe(&ctm);
 
   while (true) {
     this_thread::sleep_for(chrono::milliseconds{100});
