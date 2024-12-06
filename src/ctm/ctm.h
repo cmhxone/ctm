@@ -27,7 +27,7 @@ public:
    * @brief Destroy the CTM object
    *
    */
-  virtual ~CTM() = default;
+  virtual ~CTM();
 
   const CTM &operator=(const CTM &) = delete;
   CTM(const CTM &) = delete;

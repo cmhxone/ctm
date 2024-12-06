@@ -2,6 +2,7 @@
 
 #include "../channel/event/cti_error_event.hpp"
 #include "../channel/event/error_event.hpp"
+#include "../channel/event_channel.hpp"
 #include "../util/ini_loader.h"
 #include "./acceptor/acceptor.hpp"
 #include "./acceptor/tcp_acceptor.h"
@@ -21,6 +22,9 @@ namespace ctm {
  *
  */
 CTM::CTM() {
+  channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+      ->subscribe(this);
+
   // CTI Client 생성 및 접속
   cti_client = make_unique<CTIClient>();
   cti_client->connect();
@@ -32,6 +36,15 @@ CTM::CTM() {
   for (unique_ptr<acceptor::Acceptor> &acceptor : acceptors) {
     acceptor->accept();
   }
+}
+
+/**
+ * @brief Destroy the CTM::CTM object
+ * 
+ */
+CTM::~CTM() {
+  channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
+      ->unsubscribe(this);
 }
 
 /**

@@ -27,13 +27,23 @@ public:
    * @brief Construct a new Message Bridge object
    *
    */
-  MessageBridge() {}
+  MessageBridge() {
+    channel::EventChannel<channel::event::ClientEvent>::getInstance()
+        ->subscribe(this);
+    channel::EventChannel<channel::event::CTIEvent>::getInstance()->subscribe(
+        this);
+  }
 
   /**
    * @brief Destroy the Message Bridge object
    *
    */
-  virtual ~MessageBridge() = default;
+  virtual ~MessageBridge() {
+    channel::EventChannel<channel::event::ClientEvent>::getInstance()
+        ->unsubscribe(this);
+    channel::EventChannel<channel::event::CTIEvent>::getInstance()->unsubscribe(
+        this);
+  };
 
   /**
    * @brief 이벤트 핸들러
