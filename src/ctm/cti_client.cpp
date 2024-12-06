@@ -17,8 +17,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include <chrono>
 #include <atomic>
+#include <chrono>
 #include <iomanip>
 #include <ios>
 #include <sstream>
@@ -210,10 +210,23 @@ void CTIClient::onReadableNotification(
   spdlog::debug("Received packet. cti_server_host: {}\n{}", cti_server_host,
                 ss.str());
 
-  // CTI 이벤트 배포
-  channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
-      channel::event::CTIEvent{std::vector<std::byte>{
-          receive_buffer.cbegin(), receive_buffer.cbegin() + length}});
+  // 메시지 헤더 MHDR 정보를 이용해, 여러 패킷이 동시에 수신된 경우 분리하여
+  // 이벤트를 배포한다
+  size_t packet_index = 0;
+  vector<byte> seperator_buffer{};
+  while (packet_index < length) {
+    // 분리용 버퍼에 수신 버퍼 복사
+    seperator_buffer = vector<byte>{receive_buffer.cbegin() + packet_index,
+                                    receive_buffer.cend()};
+    // 메시지 헤더 분리
+    cisco::common::MHDR mhdr =
+        cisco::common::deserialize<cisco::common::MHDR>(seperator_buffer);
+    // 현재 처리중 패킷 위치 누산 (8 = MHDR 길이)
+    packet_index += mhdr.getMessageLength() + 8;
+    // CTI 이벤트 배포
+    channel::EventChannel<channel::event::CTIEvent>::getInstance()->publish(
+        channel::event::CTIEvent{seperator_buffer});
+  }
 }
 
 /**
@@ -276,8 +289,40 @@ void CTIClient::handleEvent(const event::Event *event) {
     query_agent_state_req.setPeripheralID(5000);
     query_agent_state_req.setAgentID("1111");
 
-    const vector<byte> query_agent_packet =
+    vector<byte> query_agent_packet =
         cisco::common::serialize(query_agent_state_req);
+    client_socket.sendBytes(query_agent_packet.data(),
+                            query_agent_packet.size());
+
+    addInvokeID();
+    query_agent_state_req.setInvokeID(getInvokeID());
+    query_agent_state_req.setAgentID("2222");
+
+    query_agent_packet = cisco::common::serialize(query_agent_state_req);
+    client_socket.sendBytes(query_agent_packet.data(),
+                            query_agent_packet.size());
+
+    addInvokeID();
+    query_agent_state_req.setInvokeID(getInvokeID());
+    query_agent_state_req.setAgentID("3333");
+
+    query_agent_packet = cisco::common::serialize(query_agent_state_req);
+    client_socket.sendBytes(query_agent_packet.data(),
+                            query_agent_packet.size());
+
+    addInvokeID();
+    query_agent_state_req.setInvokeID(getInvokeID());
+    query_agent_state_req.setAgentID("4444");
+
+    query_agent_packet = cisco::common::serialize(query_agent_state_req);
+    client_socket.sendBytes(query_agent_packet.data(),
+                            query_agent_packet.size());
+
+    addInvokeID();
+    query_agent_state_req.setInvokeID(getInvokeID());
+    query_agent_state_req.setAgentID("5555");
+
+    query_agent_packet = cisco::common::serialize(query_agent_state_req);
     client_socket.sendBytes(query_agent_packet.data(),
                             query_agent_packet.size());
   } break;
