@@ -133,11 +133,12 @@ void CTIClient::connect() noexcept {
   cisco::session::OpenReq open_req{};
   open_req.setInvokeID(getInvokeID());
   open_req.setVersionNumber(24);
-  open_req.setIdleTimeout(30);
+  open_req.setIdleTimeout(300);
   open_req.setCallMessageMask(0xffff'ffff);
-  open_req.setServicesRequested(0x10 | 0x04);
+  open_req.setServicesRequested(0x80 | 0x10 | 0x04);
   open_req.setAgentStateMask(0x3fff);
-  open_req.setConfigMessageMask(15);
+  open_req.setConfigMessageMask(0);
+  open_req.setPeripheralID(getPeripheralID());
   open_req.setClientID("ctmonitor");
   open_req.setClientPW("");
 

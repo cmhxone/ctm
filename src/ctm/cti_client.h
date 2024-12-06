@@ -87,6 +87,15 @@ private:
   }
 
   /**
+   * @brief Get the Peripheral ID object
+   *
+   * @return constexpr std::int32_t
+   */
+  constexpr std::int32_t getPeripheralID() const {
+    return peripheral_id.load(std::memory_order_acquire);
+  }
+
+  /**
    * @brief InvokeID 값 증가
    *
    */
@@ -101,6 +110,15 @@ private:
    */
   virtual void handleEvent(const channel::event::Event *event) override;
 
+  /**
+   * @brief Set the Peripheral ID object
+   *
+   * @param peripheral_id
+   */
+  void setPeripheralID(const std::int32_t peripheral_id) {
+    this->peripheral_id.store(peripheral_id, std::memory_order_release);
+  }
+
 private:
   Poco::Net::StreamSocket client_socket{};
   Poco::Net::SocketReactor client_socket_reactor{};
@@ -111,6 +129,7 @@ private:
   std::vector<std::byte> receive_buffer{4'096};
   std::atomic_uint32_t invoke_id{0};
   std::atomic<FiniteState> current_state{FiniteState::INITIALIZED};
+  std::atomic_int32_t peripheral_id{5000};
 
   Poco::Thread reactor_thread;
 };
