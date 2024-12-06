@@ -8,6 +8,7 @@
 #include "./acceptor/tcp_acceptor.h"
 #include "./client_state.hpp"
 #include "./cti_client.h"
+#include "./bridge/message_bridge.hpp"
 
 #include <chrono>
 #include <memory>
@@ -25,6 +26,8 @@ CTM::CTM() {
   channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
       ->subscribe(this);
 
+  bridge::MessageBridge::getInstance();
+
   // CTI Client 생성 및 접속
   cti_client = make_unique<CTIClient>();
   cti_client->connect();
@@ -40,7 +43,7 @@ CTM::CTM() {
 
 /**
  * @brief Destroy the CTM::CTM object
- * 
+ *
  */
 CTM::~CTM() {
   channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()

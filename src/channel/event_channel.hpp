@@ -41,6 +41,9 @@ public:
    * @param event
    */
   void publish(const T &event) noexcept {
+    spdlog::debug("Event published. event_type: {}",
+                  static_cast<std::int32_t>(event.getEventType()));
+
     channel_mtx.lock();
     event_queue.push(event);
     channel_mtx.unlock();
