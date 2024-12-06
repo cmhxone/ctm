@@ -66,6 +66,16 @@ CTIClient::CTIClient() {
 }
 
 /**
+ * @brief Destroy the CTIClient::CTIClient object
+ *
+ */
+CTIClient::~CTIClient() {
+  EventChannel<event::BridgeEvent>::getInstance()->unsubscribe(this);
+  client_socket_reactor.stop();
+  reactor_thread.join();
+}
+
+/**
  * @brief CTI 서버 접속
  *
  */
@@ -152,15 +162,6 @@ void CTIClient::connect() noexcept {
   heartbeat_thread.detach();
 
   spdlog::debug("Sent OPEN_REQ message. cti_server_host: {}", cti_server_host);
-}
-
-/**
- * @brief Destroy the CTIClient::CTIClient object
- *
- */
-CTIClient::~CTIClient() {
-  client_socket_reactor.stop();
-  reactor_thread.join();
 }
 
 /**

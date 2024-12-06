@@ -26,7 +26,7 @@ public:
    * @brief Destroy the TCPHandler object
    *
    */
-  virtual ~TCPHandler() = default;
+  virtual ~TCPHandler();
 
   /**
    * @brief 읽어들일 패킷이 존재하는 경우
@@ -51,6 +51,13 @@ public:
    */
   virtual void onShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>
                               &notification) override;
+
+  /**
+   * @brief 이벤트 핸들러
+   *
+   * @param event
+   */
+  virtual void handleEvent(const channel::event::Event *event) override;
 
 protected:
 private:

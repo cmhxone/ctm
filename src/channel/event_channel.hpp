@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #ifndef _CTM_CHANNEL_EVENT_CHANNEL_HPP_
 #define _CTM_CHANNEL_EVENT_CHANNEL_HPP_
 
@@ -55,6 +56,17 @@ public:
   void subscribe(Subscriber *subscriber) {
     subscriber_mtx.lock();
     subscribers.push_back(subscriber);
+    subscriber_mtx.unlock();
+  }
+
+  /**
+   * @brief 이벤트 채널 구독 취소
+   *
+   * @param subscriber
+   */
+  void unsubscribe(Subscriber *subscriber) {
+    subscriber_mtx.lock();
+    std::erase(subscribers, subscriber);
     subscriber_mtx.unlock();
   }
 

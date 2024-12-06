@@ -29,6 +29,12 @@ int main(int argc, char **argv) {
     this_thread::sleep_for(chrono::milliseconds{100});
   }
 
+  channel::EventChannel<CTIEvent>::getInstance()->unsubscribe(
+      ctm::bridge::MessageBridge::getInstance());
+  channel::EventChannel<ClientEvent>::getInstance()->unsubscribe(
+      ctm::bridge::MessageBridge::getInstance());
+  channel::EventChannel<CTIErrorEvent>::getInstance()->unsubscribe(&ctm);
+
   spdlog::debug("Done");
   return EXIT_SUCCESS;
 }

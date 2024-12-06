@@ -3,6 +3,8 @@
 #ifndef _CTM_CTM_HANDLER_HANDLER_HPP_
 #define _CTM_CTM_HANDLER_HANDLER_HPP_
 
+#include "../../channel/subscriber.hpp"
+
 #include <Poco/AutoPtr.h>
 #include <Poco/NObserver.h>
 #include <Poco/Net/SocketNotification.h>
@@ -18,7 +20,7 @@ namespace ctm::handler {
  * 생성되는 순간 세션별로 하나의 인스턴스가 생성된다
  *
  */
-class Handler {
+class Handler : public channel::Subscriber {
 public:
   /**
    * @brief Construct a new Handler object

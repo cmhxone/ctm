@@ -1,5 +1,6 @@
 #include "./tcp_handler.h"
 
+#include "../../channel/event/bridge_event.hpp"
 #include "../../channel/event/client_event.hpp"
 #include "../../channel/event_channel.hpp"
 
@@ -26,8 +27,19 @@ namespace ctm::handler {
 TCPHandler::TCPHandler(Poco::Net::StreamSocket &socket,
                        Poco::Net::SocketReactor &reactor)
     : Handler(socket, reactor) {
+
+  channel::EventChannel<BridgeEvent>::getInstance()->subscribe(this);
+
   spdlog::debug("TCPHandler constructed. client_address: {}",
                 socket.peerAddress().toString());
+}
+
+/**
+ * @brief Destroy the TCPHandler::TCPHandler object
+ *
+ */
+TCPHandler::~TCPHandler() {
+  channel::EventChannel<BridgeEvent>::getInstance()->unsubscribe(this);
 }
 
 /**
@@ -89,6 +101,28 @@ void TCPHandler::onShutdown(
                 socket.peerAddress().toString());
 
   delete this;
+}
+
+/**
+ * @brief 이벤트 핸들러
+ *
+ * @param event
+ */
+void TCPHandler::handleEvent(const Event *event) {
+  // 브릿지 이벤트만 처리한다
+  if (event->getEventType() != EventType::BRIDGE_EVENT) {
+    return;
+  }
+
+  const BridgeEvent *bridge_event = dynamic_cast<const BridgeEvent *>(event);
+
+  // 브릿지 이벤트 중, 클라이언트 이벤트만 처리한다
+  if (bridge_event->getDestination() !=
+      BridgeEvent::BridgeEventDestination::CLIENT) {
+    return;
+  }
+
+  socket.sendBytes("Bridge Event...!"s.data(), 16);
 }
 
 } // namespace ctm::handler
