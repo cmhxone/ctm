@@ -32,6 +32,7 @@ public:
   constexpr std::uint16_t getPeripheralType() const { return peripheral_type; }
   constexpr std::uint16_t getAgentState() const { return agent_state; }
   constexpr std::int32_t getDepartmentID() const { return department_id; }
+  constexpr std::uint16_t getSessionType() const { return session_type; }
   const std::string getAgentExtension() const {
     return agent_extension.value_or("");
   }
@@ -201,6 +202,7 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
     const cisco::common::FloatingData floating_data =
         deserialize<cisco::common::FloatingData>(std::vector<std::byte>{
             bytes.cbegin() + packet_index, bytes.cend()});
+    packet_index += 4 + floating_data.getData().size();
 
     switch (floating_data.getTag()) {
     case TagValue::AGENT_EXTENSION_TAG: {

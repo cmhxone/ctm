@@ -13,6 +13,7 @@
 #include "../../cisco/message/agent_state_event.hpp"
 #include "../../cisco/miscellaneous/system_event.hpp"
 #include "../../cisco/session/heartbeat_conf.hpp"
+#include "../../cisco/session/open_conf.hpp"
 #include "../../cisco/supervisor/agent_team_config_event.hpp"
 #include "../../template/singleton.hpp"
 
@@ -61,6 +62,28 @@ public:
           dynamic_cast<const channel::event::CTIEvent *>(event);
 
       switch (cti_event->getMessageType()) {
+      case cisco::common::MessageType::OPEN_CONF: {
+        const cisco::session::OpenConf open_conf =
+            cisco::common::deserialize<cisco::session::OpenConf>(
+                cti_event->getPacket());
+
+        spdlog::debug(
+            "Open conf event recieved. invoke_id: {}, service_granted: {}, "
+            "monitor_id: {}, pg_status: {}, icm_central_controller_time: {}, "
+            "peripheral_online: {}, peripheral_type: {}, agent_state: {}, "
+            "department_id: {}, session_type: {}, agent_extension: {}, "
+            "agent_id: {}, agent_instrument: {}, num_peripherals: {}, "
+            "flt_peripheral_id: {}, multiline_agent_control: {}",
+            open_conf.getInvokeID(), open_conf.getServiceGranted(),
+            open_conf.getMonitorID(), open_conf.getPGStatus(),
+            open_conf.getICMCentralControllerTime(),
+            open_conf.getPeripheralOnline(), open_conf.getPeripheralType(),
+            open_conf.getAgentState(), open_conf.getDepartmentID(),
+            open_conf.getSessionType(), open_conf.getAgentExtension(),
+            open_conf.getAgentID(), open_conf.getAgentInstrument(),
+            open_conf.getNumPeripherals(), open_conf.getFltPeripheralID(),
+            open_conf.getMultilineAgentControl());
+      } break;
       // Heartbeat 응답
       case cisco::common::MessageType::HEARTBEAT_CONF: {
         const cisco::session::HeartbeatConf heart_beat_conf =
@@ -187,7 +210,7 @@ public:
 
 protected:
 private:
-};
+}; // namespace ctm::bridge
 } // namespace ctm::bridge
 
 #endif
