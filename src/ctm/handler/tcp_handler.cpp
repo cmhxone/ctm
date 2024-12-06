@@ -42,6 +42,7 @@ void TCPHandler::onReadable(
   // 아무런 입력도 들어오지 않는 경우, 커넥션이 종료되었다고 판단 함
   if (length == 0) {
     socket.close();
+    delete this;
     return;
   }
 

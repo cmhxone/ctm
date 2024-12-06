@@ -27,23 +27,24 @@ public:
    * @param reactor
    */
   Handler(Poco::Net::StreamSocket &socket, Poco::Net::SocketReactor &reactor)
-      : socket(socket), reactor(reactor), receive_buffer(4'096) {
-    reactor.addEventHandler(
-        socket, Poco::NObserver<Handler, Poco::Net::ReadableNotification>{
-                    *this, &Handler::onReadable});
-    reactor.addEventHandler(
-        socket, Poco::NObserver<Handler, Poco::Net::ErrorNotification>{
-                    *this, &Handler::onError});
-    reactor.addEventHandler(
-        socket, Poco::NObserver<Handler, Poco::Net::ShutdownNotification>{
-                    *this, &Handler::onShutdown});
+      : socket(socket), reactor(reactor), receive_buffer(4'096),
+        readable_observer(*this, &Handler::onReadable),
+        error_observer(*this, &Handler::onError),
+        shutdown_observer(*this, &Handler::onShutdown) {
+    reactor.addEventHandler(socket, readable_observer);
+    reactor.addEventHandler(socket, error_observer);
+    reactor.addEventHandler(socket, shutdown_observer);
   }
 
   /**
    * @brief Destroy the Handler object
    *
    */
-  virtual ~Handler() = default;
+  virtual ~Handler() {
+    reactor.removeEventHandler(socket, readable_observer);
+    reactor.removeEventHandler(socket, error_observer);
+    reactor.removeEventHandler(socket, shutdown_observer);
+  };
 
   /**
    * @brief 패킷 수신 핸들러
@@ -73,6 +74,10 @@ protected:
   Poco::Net::StreamSocket socket;
   Poco::Net::SocketReactor &reactor;
   std::vector<std::byte> receive_buffer;
+
+  Poco::NObserver<Handler, Poco::Net::ReadableNotification> readable_observer;
+  Poco::NObserver<Handler, Poco::Net::ErrorNotification> error_observer;
+  Poco::NObserver<Handler, Poco::Net::ShutdownNotification> shutdown_observer;
 
 private:
 };
