@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #ifndef _CTM_CHANNEL_EVENT_CHANNEL_HPP_
 #define _CTM_CHANNEL_EVENT_CHANNEL_HPP_
 
@@ -15,6 +14,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <vector>
 
 namespace channel {
 /**
