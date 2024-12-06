@@ -56,6 +56,11 @@ public:
                 cti_event->getPacket());
         spdlog::debug("Heartbeat conf received. invoke_id: {}",
                       heart_beat_conf.getInvokeID());
+
+        // 클라이언트에게 메시지 배포
+        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+            ->publish(channel::event::BridgeEvent{
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::AGENT_STATE_EVENT: {
         const cisco::message::AgentStateEvent agent_state_event =
@@ -76,6 +81,11 @@ public:
             agent_state_event.getStateDuration(),
             agent_state_event.getDirection(), agent_state_event.getMRDID(),
             agent_state_event.getPeripheralID());
+
+        // 클라이언트에게 메시지 배포
+        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+            ->publish(channel::event::BridgeEvent{
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
@@ -90,6 +100,11 @@ public:
                       query_agent_state_conf.getSkillGroupID(),
                       query_agent_state_conf.getSkillGroupNumber(),
                       query_agent_state_conf.getICMAgentID());
+
+        // 클라이언트에게 메시지 배포
+        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+            ->publish(channel::event::BridgeEvent{
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       default:
         spdlog::debug(
