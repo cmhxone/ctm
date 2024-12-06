@@ -11,7 +11,9 @@
 #include "../../channel/subscriber.hpp"
 #include "../../cisco/control/query_agent_state_conf.hpp"
 #include "../../cisco/message/agent_state_event.hpp"
+#include "../../cisco/miscellaneous/system_event.hpp"
 #include "../../cisco/session/heartbeat_conf.hpp"
+#include "../../cisco/supervisor/agent_team_config_event.hpp"
 #include "../../template/singleton.hpp"
 
 #include <spdlog/spdlog.h>
@@ -116,6 +118,49 @@ public:
             ->publish(channel::event::BridgeEvent{
                 channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
+      case cisco::common::MessageType::AGENT_TEAM_CONFIG_EVENT: {
+        const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =
+            cisco::common::deserialize<cisco::supervisor::AgentTeamConfigEvent>(
+                cti_event->getPacket());
+        spdlog::debug(
+            "Agent team config event. peripheral_id: {}, team_id: {}, "
+            "number_of_agent: {}, config_operation: {}, department_id: {}, "
+            "agent_team_name: {}, atc_agent_id: {}, agent_flag: {}, "
+            "atc_agent_state: {}, atc_agent_state_duration: {}",
+            agent_team_config_event.getPeripheralID(),
+            agent_team_config_event.getTeamID(),
+            agent_team_config_event.getNumberOfAgent(),
+            agent_team_config_event.getConfigOperation(),
+            agent_team_config_event.getDepartmentID(),
+            agent_team_config_event.getAgentTeamName(),
+            agent_team_config_event.getATCAgentID(),
+            agent_team_config_event.getAgentFlag(),
+            agent_team_config_event.getATCAgentState(),
+            agent_team_config_event.getATCAgentStateDuration());
+
+        // 클라이언트에게 메시지 배포
+        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+            ->publish(channel::event::BridgeEvent{
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+      } break;
+      case cisco::common::MessageType::SYSTEM_EVENT: {
+        const cisco::misc::SystemEvent system_event =
+            cisco::common::deserialize<cisco::misc::SystemEvent>(
+                cti_event->getPacket());
+
+        spdlog::debug(
+            "System event. pg_status: {}, icm_central_controller_time: {}, "
+            "system_event_id: {}, system_event_arg_1: {}, system_event_arg_2: "
+            "{}, system_event_arg_3: {}, event_device_type: {}, text: {}, "
+            "event_device_id: {}",
+            system_event.getPGStatus(),
+            system_event.getICMCentralControllerTime(),
+            system_event.getSystemEventID(), system_event.getSystemEventArg1(),
+            system_event.getSystemEventArg2(),
+            system_event.getSystemEventArg3(),
+            system_event.getEventDeviceType(), system_event.getText(),
+            system_event.getEventDeviceID());
+      }
       default:
         spdlog::debug(
             "CTI_Event received. (non-handled message type) message_type: {}",

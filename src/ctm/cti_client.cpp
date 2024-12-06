@@ -148,9 +148,6 @@ void CTIClient::connect() noexcept {
   // HeartBeat 전송 스레드 실행
   thread heartbeat_thread{[&]() {
     while (getCurrentState() == FiniteState::CONNECTED) {
-      this_thread::sleep_for(
-          chrono::milliseconds{heartbeat_timespan.totalMilliseconds()});
-
       addInvokeID();
 
       cisco::session::HeartbeatReq heartbeat_req{};
@@ -158,6 +155,12 @@ void CTIClient::connect() noexcept {
 
       const vector<byte> packet = cisco::common::serialize(heartbeat_req);
       client_socket.sendBytes(packet.data(), packet.size());
+
+      // 스레드 sleep을 위로 올리는 경우 current_state 값을 예전 값으로
+      // 처리온다. sleep 한 사이에 소켓이 종료 되었을 수 있으니 루프문 마지막에
+      // sleep을 걸어준다.
+      this_thread::sleep_for(
+          chrono::milliseconds{heartbeat_timespan.totalMilliseconds()});
     }
   }};
   heartbeat_thread.detach();
@@ -187,12 +190,13 @@ void CTIClient::onReadableNotification(
       client_socket.receiveBytes(receive_buffer.data(), receive_buffer.size());
 
   // 들어온 메시지 길이가 0인 경우 소켓이 끊어졌다 판단
-  if (length == 0) {
+  if (length < 0) {
     current_state.store(FiniteState::FINISHED, memory_order::release);
     channel::EventChannel<channel::event::CTIErrorEvent>::getInstance()
         ->publish(channel::event::CTIErrorEvent(
             getCTIServerHost(),
             channel::event::CTIErrorEvent::CTIErrorType::CONNECTION_LOST));
+    client_socket.close();
     return;
   }
 
