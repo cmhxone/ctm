@@ -15,9 +15,9 @@
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/SocketNotification.h>
 
-#include <chrono>
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <atomic>
 #include <iomanip>
 #include <ios>
