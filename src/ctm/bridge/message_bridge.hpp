@@ -160,7 +160,7 @@ public:
             system_event.getSystemEventArg3(),
             system_event.getEventDeviceType(), system_event.getText(),
             system_event.getEventDeviceID());
-      }
+      } break;
       default:
         spdlog::debug(
             "CTI_Event received. (non-handled message type) message_type: {}",
