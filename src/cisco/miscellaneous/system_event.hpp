@@ -258,12 +258,14 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
       text.resize(floating_data.getData().size());
       std::memcpy(text.data(), floating_data.getData().data(),
                   floating_data.getData().size());
+      system_event.setText(text);
     } break;
     case TagValue::EVENT_DEVICE_ID_TAG: {
       std::string event_device_id;
       event_device_id.resize(floating_data.getData().size());
       std::memcpy(event_device_id.data(), floating_data.getData().data(),
                   floating_data.getData().size());
+      system_event.setEventDeviceID(event_device_id);
     } break;
     default:
       break;
