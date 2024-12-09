@@ -14,11 +14,29 @@
 #include <string>
 
 namespace ctm::handler {
+/**
+ * @brief 웹 소켓 핸들러 팩토리
+ *
+ */
 class WebsocketHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 public:
+  /**
+   * @brief Construct a new Websocket Handler Factory object
+   *
+   */
   WebsocketHandlerFactory() {}
+  /**
+   * @brief Destroy the Websocket Handler Factory object
+   *
+   */
   virtual ~WebsocketHandlerFactory() = default;
 
+  /**
+   * @brief Create a Request Handler object
+   *
+   * @param request
+   * @return Poco::Net::HTTPRequestHandler*
+   */
   virtual Poco::Net::HTTPRequestHandler *
   createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
     if (request.getURI() !=

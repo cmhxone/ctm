@@ -16,6 +16,10 @@ using namespace channel::event;
 using namespace Poco::Net;
 
 namespace ctm::acceptor {
+/**
+ * @brief Construct a new Websocket Acceptor:: Websocket Acceptor object
+ *
+ */
 WebsocketAcceptor::WebsocketAcceptor() {
   HTTPServerParams *params = new HTTPServerParams();
   params->setMaxQueued(64 * thread::hardware_concurrency());
@@ -27,10 +31,23 @@ WebsocketAcceptor::WebsocketAcceptor() {
       params);
 }
 
+/**
+ * @brief Destroy the Websocket Acceptor:: Websocket Acceptor object
+ *
+ */
 WebsocketAcceptor::~WebsocketAcceptor() { websocket_server->stop(); }
 
+/**
+ * @brief 웹 소켓 클라이언트 접속 허용
+ *
+ */
 void WebsocketAcceptor::accept() noexcept { websocket_server->start(); }
 
+/**
+ * @brief 이벤트 핸들러
+ *
+ * @param event
+ */
 void WebsocketAcceptor::handleEvent(const Event *event) {}
 
 } // namespace ctm::acceptor

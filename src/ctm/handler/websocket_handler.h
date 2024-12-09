@@ -15,15 +15,38 @@
 #include <vector>
 
 namespace ctm::handler {
+/**
+ * @brief 웹 소켓 핸들러
+ *
+ */
 class WebsocketHandler : public Poco::Net::HTTPRequestHandler,
                          public channel::Subscriber {
 public:
+  /**
+   * @brief Construct a new Websocket Handler object
+   *
+   */
   WebsocketHandler();
+  /**
+   * @brief Destroy the Websocket Handler object
+   *
+   */
   virtual ~WebsocketHandler();
 
+  /**
+   * @brief 웹 소켓 핸들러
+   *
+   * @param request
+   * @param response
+   */
   virtual void handleRequest(Poco::Net::HTTPServerRequest &request,
                              Poco::Net::HTTPServerResponse &response) override;
 
+  /**
+   * @brief 이벤트 핸들러
+   *
+   * @param event
+   */
   virtual void handleEvent(const channel::event::Event *event) override;
 
 protected:

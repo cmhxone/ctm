@@ -14,14 +14,28 @@ using namespace channel;
 using namespace channel::event;
 
 namespace ctm::handler {
+/**
+ * @brief Construct a new Websocket Handler:: Websocket Handler object
+ *
+ */
 WebsocketHandler::WebsocketHandler() {
   EventChannel<BridgeEvent>::getInstance()->subscribe(this);
 }
 
+/**
+ * @brief Destroy the Websocket Handler:: Websocket Handler object
+ *
+ */
 WebsocketHandler::~WebsocketHandler() {
   EventChannel<BridgeEvent>::getInstance()->unsubscribe(this);
 }
 
+/**
+ * @brief 웹 소켓 핸들러
+ *
+ * @param request
+ * @param response
+ */
 void WebsocketHandler::handleRequest(HTTPServerRequest &request,
                                      HTTPServerResponse &response) {
   websocket = make_unique<WebSocket>(request, response);
@@ -34,5 +48,10 @@ void WebsocketHandler::handleRequest(HTTPServerRequest &request,
   }
 }
 
+/**
+ * @brief 이벤트 핸들러
+ *
+ * @param event
+ */
 void WebsocketHandler::handleEvent(const Event *event) {}
 } // namespace ctm::handler
