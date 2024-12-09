@@ -19,7 +19,9 @@ add_executable(
     src/ctm/ctm.cpp
     src/ctm/cti_client.cpp
     src/ctm/acceptor/tcp_acceptor.cpp
+    src/ctm/acceptor/websocket_acceptor.cpp
     src/ctm/handler/tcp_handler.cpp
+    src/ctm/handler/websocket_handler.cpp
 
     # util
     src/util/ini_loader.cpp

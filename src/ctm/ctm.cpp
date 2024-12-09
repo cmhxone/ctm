@@ -6,9 +6,11 @@
 #include "../util/ini_loader.h"
 #include "./acceptor/acceptor.hpp"
 #include "./acceptor/tcp_acceptor.h"
+#include "./bridge/message_bridge.hpp"
 #include "./client_state.hpp"
 #include "./cti_client.h"
-#include "./bridge/message_bridge.hpp"
+#include "acceptor/websocket_acceptor.h"
+
 
 #include <chrono>
 #include <memory>
@@ -34,6 +36,11 @@ CTM::CTM() {
 
   if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
     acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
+  }
+
+  if (util::IniLoader::getInstance()->get("server", "websocket.enabled",
+                                          false)) {
+    acceptors.emplace_back(make_unique<acceptor::WebsocketAcceptor>());
   }
 
   for (unique_ptr<acceptor::Acceptor> &acceptor : acceptors) {
