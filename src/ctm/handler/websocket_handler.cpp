@@ -41,9 +41,17 @@ void WebsocketHandler::handleRequest(HTTPServerRequest &request,
   websocket = make_unique<WebSocket>(request, response);
 
   int frame_flag = WebSocket::FRAME_BINARY | WebSocket::FRAME_TEXT;
-  while (size_t length =
-             websocket->receiveFrame(receive_buffer.data(),
-                                     receive_buffer.size(), frame_flag) > 0) {
+  while (true) {
+    size_t length = websocket->receiveFrame(receive_buffer.data(),
+                                            receive_buffer.size(), frame_flag);
+
+    // 입력 받은 데이터가 없을때는 커넥션을 종료한다
+    if (length <= 0) {
+      spdlog::debug("Websocket client disconnected. peer_addr: {}",
+                    request.clientAddress().toString());
+      return;
+    }
+
     spdlog::debug("Frame received. length: {}", length);
   }
 }
