@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 find_package(Poco REQUIRED COMPONENTS Net NetSSL)
 find_package(spdlog CONFIG REQUIRED)
 find_package(unofficial-inih CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
 
 add_executable(
     ctm
@@ -18,10 +19,6 @@ add_executable(
     # CTM
     src/ctm/ctm.cpp
     src/ctm/cti_client.cpp
-    src/ctm/acceptor/tcp_acceptor.cpp
-    src/ctm/acceptor/websocket_acceptor.cpp
-    src/ctm/handler/tcp_handler.cpp
-    src/ctm/handler/websocket_handler.cpp
 
     # util
     src/util/ini_loader.cpp
@@ -34,6 +31,7 @@ target_link_libraries(
     Poco::NetSSL
     spdlog::spdlog_header_only
     unofficial::inih::inireader
+    asio::asio
 )
 
 # 리소스 파일 이동

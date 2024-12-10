@@ -5,12 +5,10 @@
 #include "../channel/event_channel.hpp"
 #include "../util/ini_loader.h"
 #include "./acceptor/acceptor.hpp"
-#include "./acceptor/tcp_acceptor.h"
+#include "./acceptor/tcp_acceptor.hpp"
 #include "./bridge/message_bridge.hpp"
 #include "./client_state.hpp"
 #include "./cti_client.h"
-#include "acceptor/websocket_acceptor.h"
-
 
 #include <chrono>
 #include <memory>
@@ -35,12 +33,8 @@ CTM::CTM() {
   cti_client->connect();
 
   if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
-    acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
-  }
-
-  if (util::IniLoader::getInstance()->get("server", "websocket.enabled",
-                                          false)) {
-    acceptors.emplace_back(make_unique<acceptor::WebsocketAcceptor>());
+    // acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
+    acceptors.emplace_back(make_unique<acceptor::AsioAcceptor>());
   }
 
   for (unique_ptr<acceptor::Acceptor> &acceptor : acceptors) {
