@@ -108,6 +108,8 @@ protected:
 
         lk.unlock();
       }
+
+      spdlog::debug("Event channel polling thread stopped");
     }};
 
     t.detach();
