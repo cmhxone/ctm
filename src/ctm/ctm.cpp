@@ -34,7 +34,7 @@ CTM::CTM() {
 
   if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
     // acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
-    acceptors.emplace_back(make_unique<acceptor::AsioAcceptor>());
+    acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
   }
 
   for (unique_ptr<acceptor::Acceptor> &acceptor : acceptors) {

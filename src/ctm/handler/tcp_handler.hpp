@@ -22,14 +22,14 @@ namespace ctm::handler {
  * @brief TCP 서버 핸들러
  *
  */
-class AsioHandler : public channel::Subscriber {
+class TCPHandler : public channel::Subscriber {
 public:
   /**
    * @brief Construct a new Asio Handler object
    *
    * @param client_socket
    */
-  AsioHandler(asio::ip::tcp::socket client_socket)
+  TCPHandler(asio::ip::tcp::socket client_socket)
       : client_socket(std::move(client_socket)) {
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->subscribe(this);
@@ -38,7 +38,7 @@ public:
    * @brief Destroy the Asio Handler object
    *
    */
-  virtual ~AsioHandler() {
+  virtual ~TCPHandler() {
     is_running.store(false, std::memory_order_release);
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->unsubscribe(this);

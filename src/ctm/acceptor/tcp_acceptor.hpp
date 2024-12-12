@@ -27,13 +27,13 @@ namespace ctm::acceptor {
  * @brief TCP 서버 acceptor
  *
  */
-class AsioAcceptor : public Acceptor {
+class TCPAcceptor : public Acceptor {
 public:
   /**
    * @brief Construct a new Asio Acceptor object
    *
    */
-  AsioAcceptor()
+  TCPAcceptor()
       : io_context(std::thread::hardware_concurrency()),
         endpoint(asio::ip::tcp::v4(), util::IniLoader::getInstance()->get(
                                           "server", "tcp.port", 5110)),
@@ -44,7 +44,7 @@ public:
    * @brief Destroy the Asio Acceptor object
    *
    */
-  virtual ~AsioAcceptor() = default;
+  virtual ~TCPAcceptor() = default;
 
   /**
    * @brief TCP 클라이언트 접속 스레드 실행
@@ -85,8 +85,8 @@ protected:
    */
   asio::awaitable<void> listener() {
     while (true) {
-      std::unique_ptr<handler::AsioHandler> &client_handler =
-          handler_list.emplace_back(std::make_unique<handler::AsioHandler>(
+      std::unique_ptr<handler::TCPHandler> &client_handler =
+          handler_list.emplace_back(std::make_unique<handler::TCPHandler>(
               std::move(co_await acceptor.async_accept(asio::use_awaitable))));
 
       asio::co_spawn(co_await asio::this_coro::executor,
@@ -101,7 +101,7 @@ private:
   asio::io_context io_context;
   asio::ip::tcp::endpoint endpoint;
   asio::ip::tcp::acceptor acceptor;
-  std::vector<std::unique_ptr<handler::AsioHandler>> handler_list{};
+  std::vector<std::unique_ptr<handler::TCPHandler>> handler_list{};
 };
 } // namespace ctm::acceptor
 
