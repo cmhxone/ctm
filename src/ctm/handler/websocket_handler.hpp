@@ -16,10 +16,12 @@
 #include <cryptopp/base64.h>
 #include <cryptopp/sha.h>
 #include <spdlog/spdlog.h>
+#include <stduuid/uuid.h>
 
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <random>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -192,24 +194,24 @@ protected:
    * @return const std::string
    */
   const std::string getSecWebSocketAccept(const std::string_view &key) {
-    spdlog::debug("SEC WEB SOCKET ACCEPT");
+    std::random_device rd;
+    std::array<int, std::mt19937::state_size> seed_data =
+        std::array<int, std::mt19937::state_size>{};
+    std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+    std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+    std::mt19937 generator(seq);
+    uuids::uuid_random_generator gen{generator};
 
-    // key(GUID) -> base64 decode
-    CryptoPP::Base64Decoder decoder;
-    std::string guid;
-    decoder.Attach(new CryptoPP::StringSink(guid));
-    decoder.Put((const CryptoPP::byte *)key.data(), key.size());
-    decoder.MessageEnd();
-
-    std::stringstream be_hashed{};
-    be_hashed << key.data() << guid;
+    std::ostringstream accept_stream{};
+    accept_stream << key.data();
+    accept_stream << gen();
 
     // base64 decode -> SHA1 hash
     CryptoPP::SHA1 hasher;
     CryptoPP::byte sha1_hash[CryptoPP::SHA1::DIGESTSIZE];
     hasher.CalculateDigest(sha1_hash,
-                           (const CryptoPP::byte *)be_hashed.str().data(),
-                           be_hashed.str().size());
+                           (const CryptoPP::byte *)accept_stream.str().data(),
+                           accept_stream.str().size());
 
     // SHA1 hash -> Accept key
     CryptoPP::Base64Encoder encoder{nullptr, false};
@@ -217,8 +219,6 @@ protected:
     encoder.Attach(new CryptoPP::StringSink(result));
     encoder.Put(sha1_hash, CryptoPP::SHA1::DIGESTSIZE);
     encoder.MessageEnd();
-
-    spdlog::debug("KEY TO ACCEPT: {} -> {}", key.data(), result);
 
     return result;
   }
