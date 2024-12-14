@@ -10,7 +10,6 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(unofficial-inih CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
-find_package(stduuid CONFIG REQUIRED)
 
 add_executable(
     ctm
@@ -35,7 +34,6 @@ target_link_libraries(
     unofficial::inih::inireader
     asio::asio
     cryptopp::cryptopp
-    stduuid
 )
 
 # 리소스 파일 이동

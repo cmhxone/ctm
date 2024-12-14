@@ -3,6 +3,8 @@
 #ifndef _CTM_CTM_HANDLER_WEBSOCKET_HANDLER_HPP_
 #define _CTM_CTM_HANDLER_WEBSOCKET_HANDLER_HPP_
 
+#define WEBSOCKET_GUID "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
 #include "../../channel/subscriber.hpp"
 
 #include "../../channel/event/bridge_event.hpp"
@@ -16,12 +18,10 @@
 #include <cryptopp/base64.h>
 #include <cryptopp/sha.h>
 #include <spdlog/spdlog.h>
-#include <stduuid/uuid.h>
 
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
-#include <random>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -194,19 +194,11 @@ protected:
    * @return const std::string
    */
   const std::string getSecWebSocketAccept(const std::string_view &key) {
-    std::random_device rd;
-    std::array<int, std::mt19937::state_size> seed_data =
-        std::array<int, std::mt19937::state_size>{};
-    std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
-    std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
-    std::mt19937 generator(seq);
-    uuids::uuid_random_generator gen{generator};
-
     std::ostringstream accept_stream{};
     accept_stream << key.data();
-    accept_stream << gen();
+    accept_stream << WEBSOCKET_GUID;
 
-    // base64 decode -> SHA1 hash
+    // key + GUID -> SHA1 hash
     CryptoPP::SHA1 hasher;
     CryptoPP::byte sha1_hash[CryptoPP::SHA1::DIGESTSIZE];
     hasher.CalculateDigest(sha1_hash,
