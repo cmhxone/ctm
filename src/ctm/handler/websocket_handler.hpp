@@ -6,7 +6,6 @@
 #define WEBSOCKET_GUID "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 #include "../../channel/subscriber.hpp"
-
 #include "../../channel/event/bridge_event.hpp"
 #include "../../channel/event/event.hpp"
 #include "../../channel/event_channel.hpp"
