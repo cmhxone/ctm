@@ -32,6 +32,29 @@
 
 namespace ctm::handler {
 class WebsocketHandler : public channel::Subscriber {
+protected:
+  /**
+   * @brief 웹 소켓 Fin bit
+   *
+   */
+  enum WebsocketFin {
+    FIN_TRUE = 0xF0,
+    FIN_FALSE = 0x00,
+  };
+
+  /**
+   * @brief 웹 소켓 OpCode
+   *
+   */
+  enum WebsocketOpCodes {
+    CONTINUATION_FRAME = 0x00,
+    TEXT_FRAME = 0x01,
+    BINARY_FRAME = 0x02,
+    CLOSE_FRAME = 0x08,
+    PING_FRAME = 0x09,
+    PONG_FRAME = 0x0A,
+  };
+
 public:
   /**
    * @brief Construct a new Websocket Handler object
@@ -255,7 +278,50 @@ protected:
    * @param message
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendText(const std::string_view message) { co_return; }
+  asio::awaitable<void> sendText(const std::string_view message) {
+    std::vector<std::byte> buffer{};
+
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
+                                               WebsocketOpCodes::TEXT_FRAME));
+
+    if (message.length() < 126) {
+      buffer.emplace_back(static_cast<std::byte>(message.length()));
+    } else if (message.length() < 65535) {
+      buffer.emplace_back(static_cast<std::byte>(126));
+      buffer.emplace_back(static_cast<std::byte>(message.length() & 0xFF00));
+      buffer.emplace_back(static_cast<std::byte>(message.length() & 0x00FF));
+    } else {
+      // FIXME: 16,384 바이트 이상 전송 시, 네트워크가 프레임을 쪼개서 전송하기
+      // 때문에 전체 바이트 전송이 되지 않는다. 이는 프레임을 쪼개서 전송하는
+      // 방식으로 변경이 필요함. 현재는 그렇게 긴 데이터를 전송하는 경우가 없어
+      // 이대로 유지하겠음
+      buffer.emplace_back(static_cast<std::byte>(127));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0xFF00'0000'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x00FF'0000'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'FF00'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'00FF'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'0000'FF00'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'0000'00FF'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'0000'0000'FF00));
+      buffer.emplace_back(
+          static_cast<std::byte>(message.length() & 0x0000'0000'0000'00FF));
+    }
+
+    std::for_each(message.cbegin(), message.cend(), [&](const char ch) {
+      buffer.emplace_back(static_cast<std::byte>(ch));
+    });
+
+    co_await client_socket.async_send(asio::buffer(buffer));
+
+    co_return;
+  }
 
   /**
    * @brief 웹 소켓 바이너리 메시지를 전송
@@ -264,6 +330,44 @@ protected:
    * @return asio::awaitable<void>
    */
   asio::awaitable<void> sendBinary(const std::vector<std::byte> &data) {
+    std::vector<std::byte> buffer{};
+
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
+                                               WebsocketOpCodes::BINARY_FRAME));
+
+    if (data.size() < 126) {
+      buffer.emplace_back(static_cast<std::byte>(data.size()));
+    } else if (data.size() < 65535) {
+      buffer.emplace_back(static_cast<std::byte>(126));
+      buffer.emplace_back(static_cast<std::byte>(data.size() & 0xFF00));
+      buffer.emplace_back(static_cast<std::byte>(data.size() & 0x00FF));
+    } else {
+      // FIXME: 16,384 바이트 이상 전송 시, 네트워크가 프레임을 쪼개서 전송하기
+      // 때문에 전체 바이트 전송이 되지 않는다. 이는 프레임을 쪼개서 전송하는
+      // 방식으로 변경이 필요함. 현재는 그렇게 긴 데이터를 전송하는 경우가 없어
+      // 이대로 유지하겠음
+      buffer.emplace_back(static_cast<std::byte>(127));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0xFF00'0000'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x00FF'0000'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'FF00'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'00FF'0000'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'0000'FF00'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'0000'00FF'0000));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'0000'0000'FF00));
+      buffer.emplace_back(
+          static_cast<std::byte>(data.size() & 0x0000'0000'0000'00FF));
+    }
+
+    std::move(data.cbegin(), data.cend(), std::back_inserter(buffer));
+    co_await client_socket.async_send(asio::buffer(buffer));
+
     co_return;
   }
 
@@ -272,14 +376,35 @@ protected:
    *
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendPong() { co_return; }
+  asio::awaitable<void> sendPong() {
+    std::vector<std::byte> buffer{};
+
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
+                                               WebsocketOpCodes::PONG_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(0));
+
+    co_await client_socket.async_send(asio::buffer(buffer));
+
+    co_return;
+  }
 
   /**
    * @brief 웹 소켓 종료 메시지를 전송
    *
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendClose() { co_return; }
+  asio::awaitable<void> sendClose() {
+    std::vector<std::byte> buffer{};
+
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
+                                               WebsocketOpCodes::CLOSE_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(0));
+
+    co_await client_socket.async_send(asio::buffer(buffer));
+    client_socket.close();
+
+    co_return;
+  }
 
   /**
    * @brief 핸들러 실행 여부를 반환
