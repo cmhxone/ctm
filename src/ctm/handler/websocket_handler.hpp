@@ -205,6 +205,7 @@ protected:
     std::ostringstream accept_stream;
     Poco::Base64Encoder base64_encoder{accept_stream};
     base64_encoder << sha1_engine.digest().data();
+    base64_encoder.close();
 
     return accept_stream.str();
   }
@@ -215,7 +216,7 @@ protected:
    * @param message
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendText(const std::string_view message) {}
+  asio::awaitable<void> sendText(const std::string_view message) { co_return; }
 
   /**
    * @brief 웹 소켓 바이너리 메시지를 전송
@@ -223,21 +224,23 @@ protected:
    * @param data
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendBinary(const std::vector<std::byte> &data) {}
+  asio::awaitable<void> sendBinary(const std::vector<std::byte> &data) {
+    co_return;
+  }
 
   /**
    * @brief 웹 소켓 퐁 메시지를 전송
    *
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendPong() {}
+  asio::awaitable<void> sendPong() { co_return; }
 
   /**
    * @brief 웹 소켓 종료 메시지를 전송
    *
    * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendClose() {}
+  asio::awaitable<void> sendClose() { co_return; }
 
   /**
    * @brief 핸들러 실행 여부를 반환
