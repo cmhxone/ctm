@@ -10,12 +10,12 @@
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
 
+#include <Poco/Base64Encoder.h>
+#include <Poco/SHA1Engine.h>
 #include <asio/awaitable.hpp>
 #include <asio/buffer.hpp>
 #include <asio/ip/tcp.hpp>
 #include <asio/use_awaitable.hpp>
-#include <cryptopp/base64.h>
-#include <cryptopp/sha.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -193,25 +193,20 @@ protected:
    * @return const std::string
    */
   const std::string getSecWebSocketAccept(const std::string_view &key) {
-    std::ostringstream accept_stream{};
-    accept_stream << key.data();
-    accept_stream << WEBSOCKET_GUID;
+    std::ostringstream key_stream{};
+    key_stream << key.data();
+    key_stream << WEBSOCKET_GUID;
 
     // key + GUID -> SHA1 hash
-    CryptoPP::SHA1 hasher;
-    CryptoPP::byte sha1_hash[CryptoPP::SHA1::DIGESTSIZE];
-    hasher.CalculateDigest(sha1_hash,
-                           (const CryptoPP::byte *)accept_stream.str().data(),
-                           accept_stream.str().size());
+    Poco::SHA1Engine sha1_engine{};
+    sha1_engine.update(key_stream.str());
 
     // SHA1 hash -> Accept key
-    CryptoPP::Base64Encoder encoder{nullptr, false};
-    std::string result;
-    encoder.Attach(new CryptoPP::StringSink(result));
-    encoder.Put(sha1_hash, CryptoPP::SHA1::DIGESTSIZE);
-    encoder.MessageEnd();
+    std::ostringstream accept_stream;
+    Poco::Base64Encoder base64_encoder{accept_stream};
+    base64_encoder << sha1_engine.digest().data();
 
-    return result;
+    return accept_stream.str();
   }
 
   /**
