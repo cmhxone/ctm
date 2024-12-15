@@ -9,6 +9,7 @@
 #include "../../channel/event/event.hpp"
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
+#include "../../util/ini_loader.h"
 
 #include <Poco/Base64Encoder.h>
 #include <Poco/SHA1Engine.h>
@@ -96,9 +97,11 @@ protected:
     std::size_t length = co_await client_socket.async_read_some(
         asio::buffer(buffer), asio::use_awaitable);
 
+    std::vector<std::byte> packet{buffer.cbegin(), buffer.cbegin() + length};
+
     if (!isSwitched()) {
       spdlog::debug("Websocket upgrade requested");
-      co_await sendSwitchingProtocol(buffer, length);
+      co_await sendSwitchingProtocol(packet);
       co_return;
     }
 
@@ -109,14 +112,20 @@ protected:
    * @brief 웹소켓 프로토콜 스위칭 응답 전송
    *
    * @param data
-   * @param length
    * @return asio::awaitable<void>
    */
   asio::awaitable<void>
-  sendSwitchingProtocol(const std::vector<std::byte> &data,
-                        std::size_t length) {
+  sendSwitchingProtocol(const std::vector<std::byte> &data) {
+
+    if (!pathValidation(data)) {
+      co_await client_socket.async_send(
+          asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
+      client_socket.close();
+      co_return;
+    }
+
     std::unordered_map<std::string, std::string> http_header =
-        std::move(parseHeader(data, length));
+        std::move(parseHeader(data));
 
     // Upgrade, Sec-WebSocket-* 이 없을땐 400 오류 반환
     if (std::find_if(http_header.cbegin(), http_header.cend(),
@@ -144,14 +153,44 @@ protected:
   }
 
   /**
+   * @brief 웹소켓 URL 경로를 검증
+   *
+   * @param data
+   * @return true
+   * @return false
+   */
+  bool pathValidation(const std::vector<std::byte> &data) {
+    std::ostringstream request_head{};
+
+    for (int i = 0; i < data.size(); i++) {
+      if (data.at(i) < static_cast<std::byte>(0x20)) {
+        break;
+      }
+      request_head << static_cast<char>(data.at(i));
+    }
+
+    std::string line{request_head.str()};
+    std::regex regexp{
+        R"regex(^[A-Z]*\s([a-zA-Z0-9\/\-+_]*)\s[A-Z0-9\/.]*$)regex"};
+    std::smatch match;
+
+    if (!std::regex_match(line, match, regexp)) {
+      return false;
+    }
+
+    return match[1].str() ==
+           util::IniLoader::getInstance()->get("server", "websocket.path",
+                                               std::string("/ctmonitor"));
+  }
+
+  /**
    * @brief HTTP 요청 헤더를 파싱
    *
    * @param data
-   * @param length
    * @return std::unordered_map<std::string, std::string>
    */
   std::unordered_map<std::string, std::string>
-  parseHeader(const std::vector<std::byte> &data, std::size_t length) {
+  parseHeader(const std::vector<std::byte> &data) {
     std::vector<std::string> headers;
 
     std::unordered_map<std::string, std::string> result{};
