@@ -16,6 +16,7 @@
 #include "../../cisco/session/open_conf.hpp"
 #include "../../cisco/supervisor/agent_team_config_event.hpp"
 #include "../../template/singleton.hpp"
+#include "../message/agent_message.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -117,10 +118,19 @@ public:
             agent_state_event.getDirection(), agent_state_event.getMRDID(),
             agent_state_event.getPeripheralID());
 
+        // 에이전트 메시지 생성
+        message::AgentMessage agent_message{};
+        agent_message.setAgentID(agent_state_event.getAgentID());
+        agent_message.setAgentState(agent_state_event.getAgentState());
+        agent_message.setExtension(agent_state_event.getAgentExtension());
+        agent_message.setStateDuration(agent_state_event.getStateDuration());
+        agent_message.setReasonCode(agent_state_event.getEventReasonCode());
+
         // 클라이언트에게 메시지 배포
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
             ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT,
+                std::make_shared<message::AgentMessage>(agent_message)});
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
@@ -136,10 +146,17 @@ public:
                       query_agent_state_conf.getSkillGroupNumber(),
                       query_agent_state_conf.getICMAgentID());
 
+        // 에이전트 메시지 생성
+        message::AgentMessage agent_message{};
+        agent_message.setAgentID(query_agent_state_conf.getAgentID());
+        agent_message.setAgentState(query_agent_state_conf.getAgentState());
+        agent_message.setExtension(query_agent_state_conf.getAgentExtension());
+
         // 클라이언트에게 메시지 배포
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
             ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT,
+                std::make_shared<message::AgentMessage>(agent_message)});
       } break;
       case cisco::common::MessageType::AGENT_TEAM_CONFIG_EVENT: {
         const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =

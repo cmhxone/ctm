@@ -9,12 +9,15 @@
 #include "../../channel/event/event.hpp"
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
+#include "../../ctm/message/agent_message.hpp"
 #include "../../util/ini_loader.h"
 
 #include <Poco/Base64Encoder.h>
 #include <Poco/SHA1Engine.h>
 #include <asio/awaitable.hpp>
 #include <asio/buffer.hpp>
+#include <asio/co_spawn.hpp>
+#include <asio/detached.hpp>
 #include <asio/ip/tcp.hpp>
 #include <asio/use_awaitable.hpp>
 #include <spdlog/spdlog.h>
@@ -38,7 +41,7 @@ protected:
    *
    */
   enum WebsocketFin {
-    FIN_TRUE = 0xF0,
+    FIN_TRUE = 0x80,
     FIN_FALSE = 0x00,
   };
 
@@ -92,6 +95,22 @@ public:
     if (bridge_event->getDestination() !=
         channel::event::BridgeEvent::BridgeEventDestination::CLIENT) {
       return;
+    }
+
+    if (bridge_event->getMessage() == nullptr) {
+      spdlog::debug("null message");
+      return;
+    }
+
+    switch (bridge_event->getMessage()->getType()) {
+    case message::Message::AGENT_MESSAGE: {
+      spdlog::debug("agent message");
+      const ctm::message::AgentMessage *agent_message =
+          dynamic_cast<const ctm::message::AgentMessage *>(
+              bridge_event->getMessage().get());
+
+      sendBinary(agent_message->pack());
+    } break;
     }
   }
 
@@ -264,9 +283,12 @@ protected:
     sha1_engine.update(key_stream.str());
 
     // SHA1 hash -> Accept key
-    std::ostringstream accept_stream;
+    std::ostringstream accept_stream{};
     Poco::Base64Encoder base64_encoder{accept_stream};
-    base64_encoder << sha1_engine.digest().data();
+    const std::vector<unsigned char> digested = sha1_engine.digest();
+    for (const unsigned char ch : digested) {
+      base64_encoder.put(ch);
+    }
     base64_encoder.close();
 
     return accept_stream.str();
@@ -276,9 +298,8 @@ protected:
    * @brief 웹 소켓 텍스트 메시지를 전송
    *
    * @param message
-   * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendText(const std::string_view message) {
+  void sendText(const std::string_view message) {
     std::vector<std::byte> buffer{};
 
     buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
@@ -318,18 +339,16 @@ protected:
       buffer.emplace_back(static_cast<std::byte>(ch));
     });
 
-    co_await client_socket.async_send(asio::buffer(buffer));
-
-    co_return;
+    client_socket.send(asio::buffer(buffer));
+    return;
   }
 
   /**
    * @brief 웹 소켓 바이너리 메시지를 전송
    *
    * @param data
-   * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendBinary(const std::vector<std::byte> &data) {
+  void sendBinary(const std::vector<std::byte> &data) {
     std::vector<std::byte> buffer{};
 
     buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
@@ -366,44 +385,39 @@ protected:
     }
 
     std::move(data.cbegin(), data.cend(), std::back_inserter(buffer));
-    co_await client_socket.async_send(asio::buffer(buffer));
-
-    co_return;
+    client_socket.send(asio::buffer(buffer));
+    return;
   }
 
   /**
    * @brief 웹 소켓 퐁 메시지를 전송
    *
-   * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendPong() {
+  void sendPong() {
     std::vector<std::byte> buffer{};
 
     buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
                         static_cast<std::byte>(WebsocketOpCodes::PONG_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
-    co_await client_socket.async_send(asio::buffer(buffer));
-
-    co_return;
+    client_socket.send(asio::buffer(buffer));
+    return;
   }
 
   /**
    * @brief 웹 소켓 종료 메시지를 전송
    *
-   * @return asio::awaitable<void>
    */
-  asio::awaitable<void> sendClose() {
+  void sendClose() {
     std::vector<std::byte> buffer{};
 
     buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
                         static_cast<std::byte>(WebsocketOpCodes::CLOSE_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
-    co_await client_socket.async_send(asio::buffer(buffer));
+    client_socket.send(asio::buffer(buffer));
     client_socket.close();
-
-    co_return;
+    return;
   }
 
   /**
