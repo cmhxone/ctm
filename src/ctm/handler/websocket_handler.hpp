@@ -312,6 +312,7 @@ protected:
     std::size_t length = 0;
     std::size_t data_index = 2;
 
+    // 전체 패킷 길이에 따라 데이터 시작 인덱스가 달라짐
     switch (mask_byte & static_cast<std::byte>(0x7F)) {
     case static_cast<std::byte>(126):
       for (int i = 0; i < 2; i++) {
@@ -331,6 +332,7 @@ protected:
       break;
     }
 
+    // 클라이언트 데이터는 항상 마스킹 되어있음 RFC 6455
     std::byte frame_mask[4] = {std::byte{0}, std::byte{0}, std::byte{0},
                                std::byte{0}};
     for (int i = 0; i < 4; i++) {
@@ -338,9 +340,19 @@ protected:
     }
 
     switch (frame_byte & static_cast<std::byte>(0x0F)) {
-    case static_cast<std::byte>(WebsocketOpCodes::BINARY_FRAME):
-      break;
+    case static_cast<std::byte>(WebsocketOpCodes::BINARY_FRAME): {
+      // 이진 프레임 처리
+      std::size_t payload_index = 0;
+      std::vector<std::byte> buffer{};
+      std::for_each(message.cbegin() + data_index, message.cend(),
+                    [&](const std::byte &b) {
+                      buffer.emplace_back(b ^ frame_mask[payload_index++ % 4]);
+                    });
+
+      // do something with buffer
+    } break;
     case static_cast<std::byte>(WebsocketOpCodes::TEXT_FRAME): {
+      // 문자열 프레임 처리
       std::ostringstream stream{};
       std::size_t payload_index = 0;
       std::for_each(message.cbegin() + data_index, message.cend(),
