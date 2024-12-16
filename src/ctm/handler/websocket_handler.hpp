@@ -148,6 +148,7 @@ protected:
     }
 
     spdlog::debug("Websocket read");
+    co_await readWebsocketMessage(packet);
   }
 
   /**
@@ -292,6 +293,69 @@ protected:
     base64_encoder.close();
 
     return accept_stream.str();
+  }
+
+  /**
+   * @brief 웹 소켓 메시지를 읽음
+   *
+   * @param message
+   * @return asio::awaitable<void>
+   */
+  asio::awaitable<void>
+  readWebsocketMessage(const std::vector<std::byte> &message) {
+    std::byte frame_byte{0};
+    frame_byte |= message.at(0);
+
+    std::byte mask_byte{0};
+    mask_byte |= message.at(1);
+
+    std::size_t length = 0;
+    std::size_t data_index = 2;
+
+    switch (mask_byte & static_cast<std::byte>(0x7F)) {
+    case static_cast<std::byte>(126):
+      for (int i = 0; i < 2; i++) {
+        length |= static_cast<std::size_t>(message.at(data_index++));
+        length <<= 8;
+      }
+      break;
+    case static_cast<std::byte>(127):
+      for (int i = 0; i < 8; i++) {
+        length |= static_cast<std::size_t>(message.at(data_index++));
+        length <<= 8;
+      }
+      break;
+    default:
+      length =
+          static_cast<std::size_t>(mask_byte & static_cast<std::byte>(0x7F));
+      break;
+    }
+
+    std::byte frame_mask[4] = {std::byte{0}, std::byte{0}, std::byte{0},
+                               std::byte{0}};
+    for (int i = 0; i < 4; i++) {
+      frame_mask[i] = message.at(data_index++);
+    }
+
+    switch (frame_byte & static_cast<std::byte>(0x0F)) {
+    case static_cast<std::byte>(WebsocketOpCodes::BINARY_FRAME):
+      break;
+    case static_cast<std::byte>(WebsocketOpCodes::TEXT_FRAME): {
+      std::ostringstream stream{};
+      std::size_t payload_index = 0;
+      std::for_each(message.cbegin() + data_index, message.cend(),
+                    [&](const std::byte &b) {
+                      stream << static_cast<char>(
+                          b ^ frame_mask[payload_index++ % 4]);
+                    });
+
+      spdlog::debug("websocket received: {}", stream.str());
+    } break;
+    default:
+      break;
+    }
+
+    co_return;
   }
 
   /**
