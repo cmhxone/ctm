@@ -281,8 +281,8 @@ protected:
   asio::awaitable<void> sendText(const std::string_view message) {
     std::vector<std::byte> buffer{};
 
-    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
-                                               WebsocketOpCodes::TEXT_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
+                        static_cast<std::byte>(WebsocketOpCodes::TEXT_FRAME));
 
     if (message.length() < 126) {
       buffer.emplace_back(static_cast<std::byte>(message.length()));
@@ -332,8 +332,8 @@ protected:
   asio::awaitable<void> sendBinary(const std::vector<std::byte> &data) {
     std::vector<std::byte> buffer{};
 
-    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
-                                               WebsocketOpCodes::BINARY_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
+                        static_cast<std::byte>(WebsocketOpCodes::BINARY_FRAME));
 
     if (data.size() < 126) {
       buffer.emplace_back(static_cast<std::byte>(data.size()));
@@ -379,8 +379,8 @@ protected:
   asio::awaitable<void> sendPong() {
     std::vector<std::byte> buffer{};
 
-    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
-                                               WebsocketOpCodes::PONG_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
+                        static_cast<std::byte>(WebsocketOpCodes::PONG_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
     co_await client_socket.async_send(asio::buffer(buffer));
@@ -396,8 +396,8 @@ protected:
   asio::awaitable<void> sendClose() {
     std::vector<std::byte> buffer{};
 
-    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE |
-                                               WebsocketOpCodes::CLOSE_FRAME));
+    buffer.emplace_back(static_cast<std::byte>(WebsocketFin::FIN_TRUE) |
+                        static_cast<std::byte>(WebsocketOpCodes::CLOSE_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
     co_await client_socket.async_send(asio::buffer(buffer));
