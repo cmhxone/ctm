@@ -9,6 +9,7 @@ find_package(Poco REQUIRED COMPONENTS Net NetSSL)
 find_package(spdlog CONFIG REQUIRED)
 find_package(unofficial-inih CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
+find_package(msgpack-cxx CONFIG REQUIRED)
 
 add_executable(
     ctm
@@ -32,6 +33,7 @@ target_link_libraries(
     spdlog::spdlog_header_only
     unofficial::inih::inireader
     asio::asio
+    msgpack-cxx
 )
 
 # 리소스 파일 이동
