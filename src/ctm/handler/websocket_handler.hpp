@@ -11,6 +11,7 @@
 #include "../../channel/subscriber.hpp"
 #include "../../ctm/message/agent_message.hpp"
 #include "../../util/ini_loader.h"
+#include "../message/state_request_message.hpp"
 
 #include <Poco/Base64Encoder.h>
 #include <Poco/SHA1Engine.h>
@@ -104,13 +105,14 @@ public:
 
     switch (bridge_event->getMessage()->getType()) {
     case message::Message::AGENT_MESSAGE: {
-      spdlog::debug("agent message");
       const ctm::message::AgentMessage *agent_message =
           dynamic_cast<const ctm::message::AgentMessage *>(
               bridge_event->getMessage().get());
 
       sendBinary(agent_message->pack());
     } break;
+    default:
+      break;
     }
   }
 
@@ -362,6 +364,18 @@ protected:
                     });
 
       spdlog::debug("websocket received: {}", stream.str());
+
+      if (stream.str().starts_with("query_agent:")) {
+        message::StateRequestMessage state_request_message{};
+        state_request_message.addAgent(stream.str().data() +
+                                       std::string("query_agent:").length());
+
+        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+            ->publish(channel::event::BridgeEvent{
+                channel::event::BridgeEvent::BridgeEventDestination::CTI,
+                std::make_shared<message::StateRequestMessage>(
+                    state_request_message)});
+      }
     } break;
     default:
       break;

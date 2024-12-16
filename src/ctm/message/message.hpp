@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <vector>
 
-
 namespace ctm::message {
 /**
  * @brief CTI ↔ CTM ↔ Client 메시지 클래스
@@ -20,6 +19,7 @@ public:
    */
   enum MessageType {
     AGENT_MESSAGE,
+    STATE_REQUEST_MESSAGE,
   };
 
   /**

@@ -9,6 +9,8 @@
 #include "../cisco/session/open_req.hpp"
 #include "../util/ini_loader.h"
 #include "./client_state.hpp"
+#include "message/message.hpp"
+#include "message/state_request_message.hpp"
 
 #include <Poco/AutoPtr.h>
 #include <Poco/NObserver.h>
@@ -286,51 +288,40 @@ void CTIClient::handleEvent(const event::Event *event) {
       return;
     }
 
-    spdlog::debug("Received BridgeEventMessage(dst: CTI)");
+    if (bridge_event->getMessage() == nullptr) {
+      spdlog::debug("Received BridgeEventMessage(dst: CTI) null message");
+      return;
+    }
 
-    // QUERY_AGENT_STATE_REQ 메시지 전송
-    cisco::control::QueryAgentStateReq query_agent_state_req{};
-    addInvokeID();
-    query_agent_state_req.setInvokeID(getInvokeID());
-    query_agent_state_req.setPeripheralID(5000);
-    query_agent_state_req.setAgentID("1111");
+    spdlog::debug(
+        "Received BridgeEventMessage(dst: CTI) message_type: {}",
+        static_cast<std::int32_t>(bridge_event->getMessage()->getType()));
 
-    vector<byte> query_agent_packet =
-        cisco::common::serialize(query_agent_state_req);
-    client_socket.sendBytes(query_agent_packet.data(),
-                            query_agent_packet.size());
+    switch (bridge_event->getMessage()->getType()) {
+    case message::Message::STATE_REQUEST_MESSAGE: {
+      const message::StateRequestMessage *state_request_message =
+          dynamic_cast<const message::StateRequestMessage *>(
+              bridge_event->getMessage().get());
 
-    addInvokeID();
-    query_agent_state_req.setInvokeID(getInvokeID());
-    query_agent_state_req.setAgentID("2222");
+      cisco::control::QueryAgentStateReq query_agent_state_req{};
 
-    query_agent_packet = cisco::common::serialize(query_agent_state_req);
-    client_socket.sendBytes(query_agent_packet.data(),
-                            query_agent_packet.size());
+      for (const std::string &agent_id :
+           state_request_message->getAgentList()) {
+        addInvokeID();
+        query_agent_state_req.setInvokeID(getInvokeID());
+        query_agent_state_req.setPeripheralID(getPeripheralID());
+        query_agent_state_req.setAgentID(agent_id);
 
-    addInvokeID();
-    query_agent_state_req.setInvokeID(getInvokeID());
-    query_agent_state_req.setAgentID("3333");
-
-    query_agent_packet = cisco::common::serialize(query_agent_state_req);
-    client_socket.sendBytes(query_agent_packet.data(),
-                            query_agent_packet.size());
-
-    addInvokeID();
-    query_agent_state_req.setInvokeID(getInvokeID());
-    query_agent_state_req.setAgentID("4444");
-
-    query_agent_packet = cisco::common::serialize(query_agent_state_req);
-    client_socket.sendBytes(query_agent_packet.data(),
-                            query_agent_packet.size());
-
-    addInvokeID();
-    query_agent_state_req.setInvokeID(getInvokeID());
-    query_agent_state_req.setAgentID("5555");
-
-    query_agent_packet = cisco::common::serialize(query_agent_state_req);
-    client_socket.sendBytes(query_agent_packet.data(),
-                            query_agent_packet.size());
+        // QUERY_AGENT_STATE_REQ 메시지 전송
+        const vector<byte> query_agent_packet =
+            cisco::common::serialize(query_agent_state_req);
+        client_socket.sendBytes(query_agent_packet.data(),
+                                query_agent_packet.size());
+      }
+    } break;
+    default:
+      break;
+    }
   } break;
   default:
     break;
