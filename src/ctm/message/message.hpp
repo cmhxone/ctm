@@ -3,8 +3,9 @@
 #ifndef _CTM_CTM_MESSAGE_MESSAGE_HPP_
 #define _CTM_CTM_MESSAGE_MESSAGE_HPP_
 
-#include <string>
-#include <string_view>
+#include <cstddef>
+#include <vector>
+
 
 namespace ctm::message {
 /**
@@ -35,15 +36,15 @@ public:
   /**
    * @brief 메시지 패킹
    *
-   * @return const std::string
+   * @return const std::vector<std::byte>
    */
-  virtual const std::string pack() const = 0;
+  virtual const std::vector<std::byte> pack() const = 0;
   /**
    * @brief 메시지 언패킹
    *
    * @param packed_message
    */
-  virtual void unpack(const std::string_view packed_message) = 0;
+  virtual void unpack(const std::vector<std::byte> &packed_message) = 0;
 
   /**
    * @brief Get the Type object

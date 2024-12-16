@@ -8,7 +8,6 @@
 #include <msgpack.hpp>
 
 #include <cstdint>
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -101,13 +100,18 @@ public:
   /**
    * @brief 메시지 패킹
    *
-   * @return const std::string
+   * @return const std::vector<std::byte>
    */
-  virtual const std::string pack() const override {
-    std::stringstream stream;
+  virtual const std::vector<std::byte> pack() const override {
+    std::ostringstream stream{};
     msgpack::pack(stream, *this);
 
-    return stream.str();
+    std::vector<std::byte> buffer{};
+    for (const char ch : stream.str()) {
+      buffer.emplace_back(static_cast<std::byte>(ch));
+    }
+
+    return buffer;
   }
 
   /**
@@ -115,9 +119,9 @@ public:
    *
    * @param packed_message
    */
-  virtual void unpack(const std::string_view packed_message) override {
-    msgpack::object_handle obj_handle =
-        msgpack::unpack(packed_message.data(), packed_message.length());
+  virtual void unpack(const std::vector<std::byte> &packed_message) override {
+    msgpack::object_handle obj_handle = msgpack::unpack(
+        (const char *)(packed_message.data()), packed_message.size());
     msgpack::object obj = obj_handle.get();
     obj.convert(*this);
   }
