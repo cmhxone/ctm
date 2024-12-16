@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CTM_CTM_MESSAGE_CLIENT_MESSAGE_HPP_
-#define _CTM_CTM_MESSAGE_CLIENT_MESSAGE_HPP_
+#ifndef _CTM_CTM_MESSAGE_AGENT_MESSAGE_HPP_
+#define _CTM_CTM_MESSAGE_AGENT_MESSAGE_HPP_
 
 #include "./message.hpp"
 
@@ -16,18 +16,18 @@
 #include <string_view>
 
 namespace ctm::message {
-class ClientMessage : public Message {
+class AgentMessage : public Message {
 public:
   /**
-   * @brief Construct a new Client Message object
+   * @brief Construct a new Agent Message object
    *
    */
-  ClientMessage() {}
+  AgentMessage() {}
   /**
-   * @brief Destroy the Client Message object
+   * @brief Destroy the Agent Message object
    *
    */
-  virtual ~ClientMessage() = default;
+  virtual ~AgentMessage() = default;
 
   /**
    * @brief Get the Agent ID object
