@@ -5,10 +5,7 @@
 
 #include "./message.hpp"
 
-#include <msgpack/v3/object_decl.hpp>
-#include <msgpack/v3/object_fwd_decl.hpp>
-#include <msgpack/v3/pack_decl.hpp>
-#include <msgpack/v3/unpack.hpp>
+#include <msgpack.hpp>
 
 #include <cstdint>
 #include <sstream>
@@ -108,7 +105,7 @@ public:
    */
   virtual const std::string pack() const override {
     std::stringstream stream;
-    msgpack::pack(stream, this);
+    msgpack::pack(stream, *this);
 
     return stream.str();
   }
@@ -124,6 +121,17 @@ public:
     msgpack::object obj = obj_handle.get();
     obj.convert(*this);
   }
+
+  /**
+   * @brief Get the Type object
+   *
+   * @return MessageType
+   */
+  virtual MessageType getType() const override {
+    return MessageType::AGENT_MESSAGE;
+  }
+
+  MSGPACK_DEFINE(agent_id, agent_state, state_duration, reason_code, extension);
 
 protected:
 private:

@@ -14,6 +14,14 @@ namespace ctm::message {
 class Message {
 public:
   /**
+   * @brief 메시지 유형
+   *
+   */
+  enum MessageType {
+    AGENT_MESSAGE,
+  };
+
+  /**
    * @brief Construct a new Message object
    *
    */
@@ -36,6 +44,13 @@ public:
    * @param packed_message
    */
   virtual void unpack(const std::string_view packed_message) = 0;
+
+  /**
+   * @brief Get the Type object
+   *
+   * @return constexpr MessageType
+   */
+  virtual constexpr MessageType getType() const = 0;
 
 protected:
 private:
