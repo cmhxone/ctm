@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstring>
 #ifndef _CTM_CISCO_SUPERVISOR_AGENT_TEAM_CONFIG_EVENT_HPP_
 #define _CTM_CISCO_SUPERVISOR_AGENT_TEAM_CONFIG_EVENT_HPP_
 
@@ -9,11 +8,19 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <string_view>
 #include <vector>
 
 namespace cisco::supervisor {
+struct ATCAgent {
+  std::string atc_agent_id;
+  std::uint16_t agent_flag;
+  std::uint16_t atc_agent_state;
+  std::uint16_t atc_agent_state_duration;
+};
+
 class AgentTeamConfigEvent {
 public:
   /**
@@ -74,37 +81,11 @@ public:
     return agent_team_name.value_or("");
   }
   /**
-   * @brief
+   * @brief Get the ATC Agent List object
    *
-   * @return constexpr std::string
+   * @return const std::vector<ATCAgent>
    */
-  constexpr std::string getATCAgentID() const {
-    return atc_agent_id.value_or("");
-  }
-  /**
-   * @brief Get the Agent Flag object
-   *
-   * @return constexpr std::uint16_t
-   */
-  constexpr std::uint16_t getAgentFlag() const {
-    return agent_flag.value_or(0);
-  }
-  /**
-   * @brief
-   *
-   * @return constexpr std::uint16_t
-   */
-  constexpr std::uint16_t getATCAgentState() const {
-    return atc_agent_state.value_or(0);
-  }
-  /**
-   * @brief
-   *
-   * @return constexpr std::uint16_t
-   */
-  constexpr std::uint16_t getATCAgentStateDuration() const {
-    return atc_agent_state_duration.value_or(0);
-  }
+  const std::vector<ATCAgent> getATCAgentList() const { return atc_agent_list; }
 
   /**
    * @brief
@@ -159,36 +140,12 @@ public:
     this->agent_team_name = agent_team_name.data();
   }
   /**
-   * @brief
+   * @brief Set the ATC Agent List object
    *
-   * @param atc_agent_id
+   * @param atc_agent_list
    */
-  void setATCAgentID(const std::string_view atc_agent_id) {
-    this->atc_agent_id = atc_agent_id.data();
-  }
-  /**
-   * @brief Set the Agent Flag object
-   *
-   * @param agent_flag
-   */
-  void setAgentFlag(const std::uint16_t agent_flag) {
-    this->agent_flag = agent_flag;
-  }
-  /**
-   * @brief
-   *
-   * @param atc_agent_state
-   */
-  void setATCAgentState(const std::uint16_t atc_agent_state) {
-    this->atc_agent_state = atc_agent_state;
-  }
-  /**
-   * @brief
-   *
-   * @param atc_agent_state_duration
-   */
-  void setATCAgentStateDuration(const std::uint16_t atc_agent_state_duration) {
-    this->atc_agent_state_duration = atc_agent_state_duration;
+  void setATCAgentList(const std::vector<ATCAgent> &atc_agent_list) {
+    this->atc_agent_list = atc_agent_list;
   }
 
 protected:
@@ -202,10 +159,7 @@ private:
   std::int32_t department_id;
   // 가변 데이터 영역
   std::optional<std::string> agent_team_name;
-  std::optional<std::string> atc_agent_id;
-  std::optional<std::uint16_t> agent_flag;
-  std::optional<std::uint16_t> atc_agent_state;
-  std::optional<std::uint16_t> atc_agent_state_duration;
+  std::vector<ATCAgent> atc_agent_list{};
 };
 } // namespace cisco::supervisor
 
@@ -252,6 +206,7 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
                              bytes.cbegin() + packet_index + field_length}));
   packet_index += field_length;
 
+  std::vector<supervisor::ATCAgent> atc_agent_list{};
   while (packet_index <
          agent_team_config_event.getMHDR().getMessageLength() + 8) {
     cisco::common::FloatingData floating_data =
@@ -268,28 +223,33 @@ cisco::common::deserialize(const std::vector<std::byte> &bytes) {
       agent_team_config_event.setAgentTeamName(agent_team_name);
     } break;
     case TagValue::ATC_AGENT_ID_TAG: {
-      std::string agent_team_id;
-      agent_team_id.resize(floating_data.getData().size());
-      std::memcpy(agent_team_id.data(), floating_data.getData().data(),
+      std::string agent_id;
+      agent_id.resize(floating_data.getData().size());
+      std::memcpy(agent_id.data(), floating_data.getData().data(),
                   floating_data.getData().size());
-      agent_team_config_event.setATCAgentID(agent_team_id);
+
+      supervisor::ATCAgent atc_agent{};
+      atc_agent.atc_agent_id = agent_id;
+
+      atc_agent_list.emplace_back(atc_agent);
     } break;
     case TagValue::AGENT_FLAGS_TAG: {
-      agent_team_config_event.setAgentFlag(
-          deserialize<std::uint16_t>(floating_data.getData()));
+      atc_agent_list.at(atc_agent_list.size() - 1).agent_flag =
+          deserialize<std::uint16_t>(floating_data.getData());
     } break;
     case TagValue::ATC_AGENT_STATE_TAG: {
-      agent_team_config_event.setATCAgentState(
-          deserialize<std::uint16_t>(floating_data.getData()));
+      atc_agent_list.at(atc_agent_list.size() - 1).atc_agent_state =
+          deserialize<std::uint16_t>(floating_data.getData());
     } break;
     case TagValue::ATC_AGENT_STATE_DURATION_TAG: {
-      agent_team_config_event.setATCAgentStateDuration(
-          deserialize<std::uint16_t>(floating_data.getData()));
+      atc_agent_list.at(atc_agent_list.size() - 1).atc_agent_state_duration =
+          deserialize<std::uint16_t>(floating_data.getData());
     } break;
     default:
       break;
     }
   }
+  agent_team_config_event.setATCAgentList(atc_agent_list);
 
   return agent_team_config_event;
 }

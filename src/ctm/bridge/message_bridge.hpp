@@ -199,21 +199,27 @@ public:
         const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =
             cisco::common::deserialize<cisco::supervisor::AgentTeamConfigEvent>(
                 cti_event->getPacket());
+
+        std::ostringstream atc_agent_stream;
+        for (const cisco::supervisor::ATCAgent &agent :
+             agent_team_config_event.getATCAgentList()) {
+          atc_agent_stream << "{agent_id: " << agent.atc_agent_id
+                           << ", flag: " << agent.agent_flag
+                           << ", state: " << agent.atc_agent_state
+                           << ", duration: " << agent.atc_agent_state_duration
+                           << "}, ";
+        }
+
         spdlog::debug(
             "Agent team config event. peripheral_id: {}, team_id: {}, "
             "number_of_agent: {}, config_operation: {}, department_id: {}, "
-            "agent_team_name: {}, atc_agent_id: {}, agent_flag: {}, "
-            "atc_agent_state: {}, atc_agent_state_duration: {}",
+            "agent_team_name: {}, atc_agent_list: [{}]",
             agent_team_config_event.getPeripheralID(),
             agent_team_config_event.getTeamID(),
             agent_team_config_event.getNumberOfAgent(),
             agent_team_config_event.getConfigOperation(),
             agent_team_config_event.getDepartmentID(),
-            agent_team_config_event.getAgentTeamName(),
-            agent_team_config_event.getATCAgentID(),
-            agent_team_config_event.getAgentFlag(),
-            agent_team_config_event.getATCAgentState(),
-            agent_team_config_event.getATCAgentStateDuration());
+            agent_team_config_event.getAgentTeamName(), atc_agent_stream.str());
 
         // 클라이언트에게 메시지 배포
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
