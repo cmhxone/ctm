@@ -295,11 +295,8 @@ void CTIClient::handleEvent(const event::Event *event) {
       std::regex regexp{R"regex(([0-9]*)\-(.*))regex"};
       std::smatch match{};
 
-      bool result = std::regex_match(
-          bridge_event->getBridgeEventMessage().message, match, regexp);
-
-      spdlog::debug("\t\t{}, {}", bridge_event->getBridgeEventMessage().message,
-                    result);
+      std::regex_match(bridge_event->getBridgeEventMessage().message, match,
+                       regexp);
 
       cisco::control::QueryAgentStateReq query_agent_state_req{};
       addInvokeID();
