@@ -28,6 +28,7 @@ public:
   enum class BridgeEventType : std::uint8_t {
     NONE,
     QUERY_AGENT,
+    BROADCAST_AGENT_STATE,
   };
 
   /**

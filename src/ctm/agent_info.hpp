@@ -3,6 +3,9 @@
 #ifndef _CTM_CTM_AGENT_INFO_HPP_
 #define _CTM_CTM_AGENT_INFO_HPP_
 
+#include "../channel/event/bridge_event.hpp"
+#include "../channel/event_channel.hpp"
+
 #include <msgpack.hpp>
 #include <spdlog/spdlog.h>
 
@@ -11,6 +14,10 @@
 #include <string_view>
 
 namespace ctm {
+/**
+ * @brief 상담원 상태
+ *
+ */
 class AgentInfo {
 public:
   /**
@@ -25,7 +32,7 @@ public:
   virtual ~AgentInfo() = default;
 
   /**
-   * @brief
+   * @brief 비교 연산 오버로딩
    *
    * @param rhs
    * @return true
@@ -154,7 +161,14 @@ public:
    *
    */
   void broadcast() {
-    // TODO: 업데이트 이후 본 데이터를 클라이언트에게 브로드캐스팅한다
+    channel::EventChannel<channel::event::BridgeEvent>::getInstance()->publish(
+        channel::event::BridgeEvent{
+            channel::event::BridgeEvent::BridgeEventDestination::CLIENT,
+            channel::event::BridgeEvent::BridgeEventMessage{
+                .type = channel::event::BridgeEvent::BridgeEventType::
+                    BROADCAST_AGENT_STATE,
+                .message = pack()}});
+
     spdlog::debug(
         "icm_agent_id: {}, agent_id: {}, agent_state: {}, state_duration: {}, "
         "reason_code: {}, skill_group_id: {}, direction: {}, extension: {}",

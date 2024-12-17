@@ -96,6 +96,8 @@ public:
         channel::event::BridgeEvent::BridgeEventDestination::CLIENT) {
       return;
     }
+
+    sendBinary(bridge_event->getBridgeEventMessage().message);
   }
 
   /**

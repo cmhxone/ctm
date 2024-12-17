@@ -314,6 +314,8 @@ void CTIClient::handleEvent(const event::Event *event) {
           cisco::common::serialize(query_agent_state_req).data(),
           cisco::common::serialize(query_agent_state_req).size());
     } break;
+    case event::BridgeEvent::BridgeEventType::BROADCAST_AGENT_STATE:
+      break;
     }
   } break;
   default:

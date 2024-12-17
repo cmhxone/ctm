@@ -64,7 +64,8 @@ public:
 
     // 이벤트 수신 시, 클라이언트로 메시지를 전송한다
     try {
-      client_socket.send(asio::buffer(std::string("Client\r\n")));
+      client_socket.send(
+          asio::buffer(bride_event->getBridgeEventMessage().message));
     } catch (...) {
       // 전송 실패 시 끊어진 것으로 간주
       is_running.store(false, std::memory_order_release);
