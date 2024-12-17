@@ -211,7 +211,7 @@ public:
         std::ostringstream atc_agent_stream;
         for (const cisco::supervisor::ATCAgent &agent :
              agent_team_config_event.getATCAgentList()) {
-          atc_agent_stream << "{agent_id: " << agent.atc_agent_id
+          atc_agent_stream << "{agent_id: " << agent.atc_agent_id.data()
                            << ", flag: " << agent.agent_flag
                            << ", state: " << agent.atc_agent_state
                            << ", duration: " << agent.atc_agent_state_duration
@@ -220,7 +220,7 @@ public:
           // CTI 에게 메시지 배포 (peripheralid-agentid)
           std::ostringstream bridge_message_stream{};
           bridge_message_stream << agent_team_config_event.getPeripheralID()
-                                << "-" << agent.atc_agent_id;
+                                << "-" << agent.atc_agent_id.data();
           bridge_message_stream.flush();
 
           std::vector<std::byte> bridge_message{};
@@ -237,21 +237,21 @@ public:
                       .message = bridge_message}});
 
           // 상담원 맵에 저장
-          if (AgentInfoMap::getInstance()->exists(agent.atc_agent_id)) {
+          if (AgentInfoMap::getInstance()->exists(agent.atc_agent_id.data())) {
             AgentInfo agent_info{};
-            agent_info.setAgentID(agent.atc_agent_id);
+            agent_info.setAgentID(agent.atc_agent_id.data());
             agent_info.setAgentState(agent.atc_agent_state);
             agent_info.setStateDuration(agent.atc_agent_state_duration);
 
-            AgentInfoMap::getInstance()->get().emplace(agent.atc_agent_id,
-                                                       agent_info);
+            AgentInfoMap::getInstance()->get().emplace(
+                agent.atc_agent_id.data(), agent_info);
 
             agent_info.broadcast();
           } else {
-            AgentInfo &agent_info =
-                AgentInfoMap::getInstance()->get().at(agent.atc_agent_id);
+            AgentInfo &agent_info = AgentInfoMap::getInstance()->get().at(
+                agent.atc_agent_id.data());
 
-            agent_info.setAgentID(agent.atc_agent_id);
+            agent_info.setAgentID(agent.atc_agent_id.data());
             agent_info.setAgentState(agent.atc_agent_state);
             agent_info.setStateDuration(agent.atc_agent_state_duration);
 

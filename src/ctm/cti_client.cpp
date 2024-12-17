@@ -292,7 +292,7 @@ void CTIClient::handleEvent(const event::Event *event) {
       break;
     case event::BridgeEvent::BridgeEventType::QUERY_AGENT: {
       // 정규식... 뒤에도 [0-9]로 하면 알아 먹질 못한다... 꿀밤딱대
-      std::regex regexp{R"regex(([0-9]*)\-(.*))regex"};
+      std::regex regexp{R"regex(([0-9]*)\-([0-9]*))regex"};
       std::smatch match{};
 
       std::string buffer{};
