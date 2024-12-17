@@ -352,9 +352,9 @@ protected:
         state_request_message.addAgent(stream.str().data() +
                                        std::string("query_agent:").length());
 
-        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-            ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CTI});
+        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        //     ->publish(channel::event::BridgeEvent{
+        //         channel::event::BridgeEvent::BridgeEventDestination::CTI});
       }
     } break;
     default:

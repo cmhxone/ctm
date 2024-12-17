@@ -6,6 +6,7 @@
 #include "./event.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace channel::event {
 class BridgeEvent : public Event {
@@ -19,14 +20,33 @@ public:
     CLIENT,
   };
 
+  /**
+   * @brief 브릿지 이벤트 유형
+   *
+   */
+  enum class BridgeEventType : std::uint8_t {
+    NONE,
+    QUERY_AGENT,
+  };
+
+  /**
+   * @brief 브릿지 이벤트 메시지
+   *
+   */
+  struct BridgeEventMessage {
+    BridgeEventType type;
+    std::string message;
+  };
+
 public:
   /**
    * @brief Construct a new Bridge Event object
    *
    * @param destination
    */
-  BridgeEvent(const BridgeEventDestination &destination)
-      : destination(destination) {}
+  BridgeEvent(const BridgeEventDestination &destination,
+              const BridgeEventMessage &message)
+      : destination(destination), message(message) {}
 
   /**
    * @brief Destroy the Bridge Event object
@@ -52,9 +72,19 @@ public:
     return destination;
   }
 
+  /**
+   * @brief Get the Bridge Event Message object
+   *
+   * @return const BridgeEventMessage&
+   */
+  virtual const BridgeEventMessage &getBridgeEventMessage() const {
+    return message;
+  }
+
 protected:
 private:
   BridgeEventDestination destination;
+  BridgeEventMessage message;
 };
 } // namespace channel::event
 

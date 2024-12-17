@@ -95,9 +95,9 @@ public:
                       heart_beat_conf.getInvokeID());
 
         // 클라이언트에게 메시지 배포
-        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-            ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        //     ->publish(channel::event::BridgeEvent{
+        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::AGENT_STATE_EVENT: {
         const cisco::message::AgentStateEvent agent_state_event =
@@ -149,9 +149,9 @@ public:
         }
 
         // 클라이언트에게 메시지 배포
-        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-            ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        //     ->publish(channel::event::BridgeEvent{
+        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
@@ -191,9 +191,9 @@ public:
         }
 
         // 클라이언트에게 메시지 배포
-        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-            ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        //     ->publish(channel::event::BridgeEvent{
+        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::AGENT_TEAM_CONFIG_EVENT: {
         const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =
@@ -208,6 +208,37 @@ public:
                            << ", state: " << agent.atc_agent_state
                            << ", duration: " << agent.atc_agent_state_duration
                            << "}, ";
+
+          // CTI 에게 메시지 배포 (peripheralid-agentid)
+          std::ostringstream bridge_message_stream{};
+          bridge_message_stream << agent_team_config_event.getPeripheralID()
+                                << "-" << agent.atc_agent_id;
+          bridge_message_stream.flush();
+          channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+              ->publish(channel::event::BridgeEvent{
+                  channel::event::BridgeEvent::BridgeEventDestination::CTI,
+                  channel::event::BridgeEvent::BridgeEventMessage{
+                      .type = channel::event::BridgeEvent::BridgeEventType::
+                          QUERY_AGENT,
+                      .message = bridge_message_stream.str()}});
+
+          // 상담원 맵에 저장
+          if (AgentInfoMap::getInstance()->exists(agent.atc_agent_id)) {
+            AgentInfo agent_info{};
+            agent_info.setAgentID(agent.atc_agent_id);
+            agent_info.setAgentState(agent.atc_agent_state);
+            agent_info.setStateDuration(agent.atc_agent_state_duration);
+
+            AgentInfoMap::getInstance()->get().emplace(agent.atc_agent_id,
+                                                       agent_info);
+          } else {
+            AgentInfo &agent_info =
+                AgentInfoMap::getInstance()->get().at(agent.atc_agent_id);
+
+            agent_info.setAgentID(agent.atc_agent_id);
+            agent_info.setAgentState(agent.atc_agent_state);
+            agent_info.setStateDuration(agent.atc_agent_state_duration);
+          }
         }
 
         spdlog::debug(
@@ -220,11 +251,6 @@ public:
             agent_team_config_event.getConfigOperation(),
             agent_team_config_event.getDepartmentID(),
             agent_team_config_event.getAgentTeamName(), atc_agent_stream.str());
-
-        // 클라이언트에게 메시지 배포
-        channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-            ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::SYSTEM_EVENT: {
         const cisco::misc::SystemEvent system_event =
@@ -259,9 +285,9 @@ public:
       const channel::event::ClientEvent *client_event =
           dynamic_cast<const channel::event::ClientEvent *>(event);
 
-      channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-          ->publish(channel::event::BridgeEvent{
-              channel::event::BridgeEvent::BridgeEventDestination::CTI});
+      //   channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+      //       ->publish(channel::event::BridgeEvent{
+      //           channel::event::BridgeEvent::BridgeEventDestination::CTI});
     } break;
       // CTI, 클라이언트 메시지가 아닌 경우 처리하지 않는다
     default:

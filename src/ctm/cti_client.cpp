@@ -4,6 +4,7 @@
 #include "../channel/event/cti_event.hpp"
 #include "../channel/event/event.hpp"
 #include "../channel/event_channel.hpp"
+#include "../cisco/control/query_agent_state_req.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
 #include "../cisco/session/open_req.hpp"
 #include "../util/ini_loader.h"
@@ -19,6 +20,7 @@
 #include <chrono>
 #include <iomanip>
 #include <ios>
+#include <regex>
 #include <sstream>
 #include <thread>
 #include <vector>
@@ -282,6 +284,34 @@ void CTIClient::handleEvent(const event::Event *event) {
     if (bridge_event->getDestination() !=
         event::BridgeEvent::BridgeEventDestination::CTI) {
       return;
+    }
+
+    // 브릿지 이벤트에 따라 처리
+    switch (bridge_event->getBridgeEventMessage().type) {
+    case event::BridgeEvent::BridgeEventType::NONE:
+      break;
+    case event::BridgeEvent::BridgeEventType::QUERY_AGENT: {
+      // 정규식... 뒤에도 [0-9]로 하면 알아 먹질 못한다... 꿀밤딱대
+      std::regex regexp{R"regex(([0-9]*)\-(.*))regex"};
+      std::smatch match{};
+
+      bool result = std::regex_match(
+          bridge_event->getBridgeEventMessage().message, match, regexp);
+
+      spdlog::debug("\t\t{}, {}", bridge_event->getBridgeEventMessage().message,
+                    result);
+
+      cisco::control::QueryAgentStateReq query_agent_state_req{};
+      addInvokeID();
+      query_agent_state_req.setInvokeID(getInvokeID());
+      query_agent_state_req.setPeripheralID(std::stoi(match[1].str()));
+      query_agent_state_req.setAgentID(match[2].str());
+
+      // Query Agent State 커맨드를 전송한다
+      client_socket.sendBytes(
+          cisco::common::serialize(query_agent_state_req).data(),
+          cisco::common::serialize(query_agent_state_req).size());
+    } break;
     }
   } break;
   default:
