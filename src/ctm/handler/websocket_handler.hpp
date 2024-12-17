@@ -97,7 +97,11 @@ public:
       return;
     }
 
-    sendBinary(bridge_event->getBridgeEventMessage().message);
+    try {
+      sendBinary(bridge_event->getBridgeEventMessage().message);
+    } catch (...) {
+      setRunning(false);
+    }
   }
 
   /**
@@ -111,6 +115,18 @@ public:
     while (isRunning()) {
       co_await read();
     }
+
+    delete this;
+  }
+
+  /**
+   * @brief 핸들러 실행 여부를 반환
+   *
+   * @return true
+   * @return false
+   */
+  constexpr bool isRunning() const {
+    return is_running.load(std::memory_order_acquire);
   }
 
 protected:
@@ -490,16 +506,6 @@ protected:
     client_socket.send(asio::buffer(buffer));
     client_socket.close();
     return;
-  }
-
-  /**
-   * @brief 핸들러 실행 여부를 반환
-   *
-   * @return true
-   * @return false
-   */
-  constexpr bool isRunning() const {
-    return is_running.load(std::memory_order_acquire);
   }
 
   /**

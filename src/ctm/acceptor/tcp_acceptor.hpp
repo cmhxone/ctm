@@ -1,6 +1,5 @@
 #pragma once
 
-#include <asio/post.hpp>
 #ifndef _CTM_CTM_ACCEPTOR_TCP_ACCEPTOR_HPP_
 #define _CTM_CTM_ACCEPTOR_TCP_ACCEPTOR_HPP_
 
@@ -14,6 +13,7 @@
 #include <asio/error_code.hpp>
 #include <asio/io_context.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/post.hpp>
 #include <asio/strand.hpp>
 #include <asio/this_coro.hpp>
 #include <asio/use_awaitable.hpp>
@@ -77,7 +77,8 @@ protected:
   void startAccept() {
     spdlog::debug("TCP Acceptor start accept called.");
 
-    asio::co_spawn(io_context, listener(), asio::detached);
+    asio::co_spawn(strand, listener(), asio::detached);
+    // asio::co_spawn(strand, cleanListeners(), asio::detached);
   }
 
   /**

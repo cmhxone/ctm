@@ -70,7 +70,8 @@ protected:
   void startAccept() {
     spdlog::debug("Websocket Acceptor start accept called.");
 
-    asio::co_spawn(io_context, listener(), asio::detached);
+    asio::co_spawn(strand, listener(), asio::detached);
+    // asio::co_spawn(strand, cleanListeners(), asio::detached);
   }
 
   /**

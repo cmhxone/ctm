@@ -83,6 +83,8 @@ public:
     while (is_running.load(std::memory_order_acquire)) {
       co_await read();
     }
+
+    delete this;
   }
 
   /**
@@ -102,6 +104,16 @@ public:
 
     channel::EventChannel<channel::event::ClientEvent>::getInstance()->publish(
         channel::event::ClientEvent{buffer});
+  }
+
+  /**
+   * @brief 실행 여부 반환
+   *
+   * @return true
+   * @return false
+   */
+  constexpr bool isRunning() const {
+    return is_running.load(std::memory_order_acquire);
   }
 
 protected:
