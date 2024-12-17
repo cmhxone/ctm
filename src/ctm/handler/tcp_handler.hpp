@@ -7,6 +7,8 @@
 #include "../../channel/event/client_event.hpp"
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
+#include "../agent_info.hpp"
+#include "../agent_info_map.hpp"
 
 #include <asio/awaitable.hpp>
 #include <asio/ip/tcp.hpp>
@@ -83,6 +85,12 @@ public:
    */
   asio::awaitable<void> handleConnection() {
     is_running.store(true, std::memory_order_release);
+
+    // 최초 접속 시, 전체 상담원 상태를 바이너리 메시지로 전송
+    for (const std::pair<std::string, AgentInfo> &element :
+         AgentInfoMap::getInstance()->get()) {
+      co_await client_socket.async_send(asio::buffer(element.second.pack()));
+    }
 
     while (is_running.load(std::memory_order_acquire)) {
       co_await read();

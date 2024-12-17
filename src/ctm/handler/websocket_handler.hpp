@@ -10,6 +10,8 @@
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
 #include "../../util/ini_loader.h"
+#include "../agent_info.hpp"
+#include "../agent_info_map.hpp"
 #include "../message/state_request_message.hpp"
 
 #include <Poco/Base64Encoder.h>
@@ -206,7 +208,14 @@ protected:
                     << "\r\n\r\n";
 
     co_await client_socket.async_send(asio::buffer(response_stream.str()));
+
     setSwitched(true);
+
+    // 최초 접속 시, 전체 상담원 상태를 바이너리 메시지로 전송
+    for (const std::pair<std::string, AgentInfo> &element :
+         AgentInfoMap::getInstance()->get()) {
+      sendBinary(element.second.pack());
+    }
   }
 
   /**
