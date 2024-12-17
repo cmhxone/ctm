@@ -10,7 +10,6 @@
 #include <string_view>
 #include <unordered_map>
 
-
 namespace ctm {
 /**
  * @brief 상담원 상태를 저장하는 맵맵
@@ -47,7 +46,7 @@ public:
     return std::find_if(inner_map.cbegin(), inner_map.cend(),
                         [&](const std::pair<std::string, AgentInfo> &info) {
                           return info.first == agent_id.data();
-                        }) != inner_map.cend();
+                        }) == inner_map.cend();
   }
 
 protected:
