@@ -42,6 +42,10 @@ public:
     is_running.store(false, std::memory_order_release);
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->unsubscribe(this);
+    try {
+      client_socket.close();
+    } catch (...) {
+    }
   };
 
   /**
@@ -95,8 +99,13 @@ public:
   asio::awaitable<void> read() {
     std::vector<std::byte> buffer{1'024};
 
-    std::size_t length = co_await client_socket.async_read_some(
-        asio::buffer(buffer), asio::use_awaitable);
+    std::size_t length = 0;
+    try {
+      length = co_await client_socket.async_read_some(asio::buffer(buffer),
+                                                      asio::use_awaitable);
+    } catch (...) {
+      is_running.store(false, std::memory_order_release);
+    }
 
     spdlog::debug("Client sent. peer_address: {}, length: {}",
                   client_socket.remote_endpoint().address().to_v4().to_string(),

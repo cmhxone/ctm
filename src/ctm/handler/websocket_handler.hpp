@@ -77,6 +77,12 @@ public:
   virtual ~WebsocketHandler() {
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->unsubscribe(this);
+
+    try {
+      client_socket.shutdown(asio::socket_base::shutdown_both);
+      client_socket.close();
+    } catch (...) {
+    }
   }
 
   /**
@@ -138,8 +144,14 @@ protected:
   asio::awaitable<void> read() {
     std::vector<std::byte> buffer{4'096};
 
-    std::size_t length = co_await client_socket.async_read_some(
-        asio::buffer(buffer), asio::use_awaitable);
+    std::size_t length = 0;
+    try {
+      length = co_await client_socket.async_read_some(asio::buffer(buffer),
+                                                      asio::use_awaitable);
+    } catch (...) {
+      setRunning(false);
+      co_return;
+    }
 
     std::vector<std::byte> packet{buffer.cbegin(), buffer.cbegin() + length};
 
