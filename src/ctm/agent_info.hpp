@@ -9,6 +9,7 @@
 #include <msgpack.hpp>
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -65,7 +66,7 @@ public:
    *
    * @return constexpr std::uint16_t
    */
-  constexpr std::uint16_t getStateDuration() const { return state_duration; }
+  constexpr std::uint64_t getStateDuration() const { return state_duration; }
   /**
    * @brief Get the Reason Code object
    *
@@ -121,7 +122,15 @@ public:
    * @param state_duration
    */
   void setStateDuration(const std::uint16_t state_duration) {
-    this->state_duration = state_duration;
+    // 상태 지속시간은 UNIX epoch time으로 변환해서 저장한다
+    // 클라이언트에서는 상태 시작시간으로 판단하면 된다
+    std::uint64_t now_epoch =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+
+    this->state_duration =
+        now_epoch - static_cast<std::uint64_t>(state_duration);
   }
   /**
    * @brief Set the Reason Code object
@@ -213,7 +222,10 @@ private:
   std::int32_t icm_agent_id{0};
   std::string agent_id{""};
   std::uint16_t agent_state{0};
-  std::uint16_t state_duration{0};
+  std::uint64_t state_duration{static_cast<std::uint64_t>(
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count())};
   std::uint16_t reason_code{0};
   std::uint16_t skill_group_id{0};
   std::uint32_t direction{0};
