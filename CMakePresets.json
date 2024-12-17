@@ -13,7 +13,7 @@
                 "CMAKE_CXX_COMPILER": "C:/Program Files/LLVM/bin/clang++.exe",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-windows"
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
             }
         },
         {
@@ -28,7 +28,7 @@
                 "CMAKE_CXX_COMPILER": "C:/Program Files/LLVM/bin/clang++.exe",
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-windows"
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
             }
         },
         {

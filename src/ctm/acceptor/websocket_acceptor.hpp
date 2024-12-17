@@ -12,6 +12,7 @@
 #include <asio/detached.hpp>
 #include <asio/io_context.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/strand.hpp>
 #include <asio/use_awaitable.hpp>
 #include <spdlog/spdlog.h>
 
@@ -28,6 +29,7 @@ public:
    */
   WebsocketAcceptor()
       : io_context(std::thread::hardware_concurrency()),
+        strand(asio::make_strand(io_context)),
         endpoint(asio::ip::tcp::v4(), util::IniLoader::getInstance()->get(
                                           "server", "websocket.port", 8085)),
         acceptor(io_context, endpoint) {
@@ -78,12 +80,12 @@ protected:
    */
   asio::awaitable<void> listener() {
     while (true) {
+      co_await asio::post(strand);
       std::unique_ptr<handler::WebsocketHandler> &client_handler =
           handler_list.emplace_back(std::make_unique<handler::WebsocketHandler>(
               std::move(co_await acceptor.async_accept(asio::use_awaitable))));
 
-      asio::co_spawn(co_await asio::this_coro::executor,
-                     client_handler->handleConnection(),
+      asio::co_spawn(strand, client_handler->handleConnection(),
                      [&](const std::exception_ptr e) {
                        std::erase(handler_list, client_handler);
                      });
@@ -92,6 +94,7 @@ protected:
 
 private:
   asio::io_context io_context;
+  asio::strand<asio::io_context::executor_type> strand;
   asio::ip::tcp::endpoint endpoint;
   asio::ip::tcp::acceptor acceptor;
   std::vector<std::unique_ptr<handler::WebsocketHandler>> handler_list{};
