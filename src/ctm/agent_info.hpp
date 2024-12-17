@@ -162,6 +162,35 @@ public:
         getReasonCode(), getSkillGroupID(), getDirection(), getExtension());
   }
 
+  /**
+   * @brief 메시지 패킹
+   *
+   * @return const std::vector<std::byte>
+   */
+  const std::vector<std::byte> pack() const {
+    std::ostringstream stream{};
+    msgpack::pack(stream, *this);
+
+    std::vector<std::byte> buffer{};
+    for (const char ch : stream.str()) {
+      buffer.emplace_back(static_cast<std::byte>(ch));
+    }
+
+    return buffer;
+  }
+
+  /**
+   * @brief 메시지 언패킹
+   *
+   * @param packed_message
+   */
+  void unpack(const std::vector<std::byte> &packed_message) {
+    msgpack::object_handle obj_handle = msgpack::unpack(
+        (const char *)packed_message.data(), packed_message.size());
+    msgpack::object obj = obj_handle.get();
+    obj.convert(*this);
+  }
+
   MSGPACK_DEFINE(icm_agent_id, agent_id, agent_state, state_duration,
                  reason_code, skill_group_id, direction, extension);
 
