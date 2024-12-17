@@ -134,6 +134,8 @@ public:
 
           AgentInfoMap::getInstance()->get().emplace(
               agent_state_event.getAgentID(), agent_info);
+
+          agent_info.broadcast();
         } else {
           AgentInfo &agent_info = AgentInfoMap::getInstance()->get().at(
               agent_state_event.getAgentID());
@@ -146,6 +148,8 @@ public:
           agent_info.setExtension(agent_state_event.getAgentExtension());
           agent_info.setReasonCode(agent_state_event.getEventReasonCode());
           agent_info.setSkillGroupID(agent_state_event.getSkillGroupID());
+
+          agent_info.broadcast();
         }
 
         // 클라이언트에게 메시지 배포
@@ -179,6 +183,8 @@ public:
 
           AgentInfoMap::getInstance()->get().emplace(
               query_agent_state_conf.getAgentID(), agent_info);
+
+          agent_info.broadcast();
         } else {
           AgentInfo &agent_info = AgentInfoMap::getInstance()->get().at(
               query_agent_state_conf.getAgentID());
@@ -188,6 +194,8 @@ public:
           agent_info.setICMAgentID(query_agent_state_conf.getICMAgentID());
           agent_info.setExtension(query_agent_state_conf.getAgentExtension());
           agent_info.setSkillGroupID(query_agent_state_conf.getSkillGroupID());
+
+          agent_info.broadcast();
         }
 
         // 클라이언트에게 메시지 배포
@@ -231,6 +239,8 @@ public:
 
             AgentInfoMap::getInstance()->get().emplace(agent.atc_agent_id,
                                                        agent_info);
+
+            agent_info.broadcast();
           } else {
             AgentInfo &agent_info =
                 AgentInfoMap::getInstance()->get().at(agent.atc_agent_id);
@@ -238,6 +248,8 @@ public:
             agent_info.setAgentID(agent.atc_agent_id);
             agent_info.setAgentState(agent.atc_agent_state);
             agent_info.setStateDuration(agent.atc_agent_state_duration);
+
+            agent_info.broadcast();
           }
         }
 

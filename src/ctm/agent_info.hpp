@@ -3,11 +3,12 @@
 #ifndef _CTM_CTM_AGENT_INFO_HPP_
 #define _CTM_CTM_AGENT_INFO_HPP_
 
+#include <msgpack.hpp>
+#include <spdlog/spdlog.h>
+
 #include <cstdint>
 #include <string>
 #include <string_view>
-
-#include <msgpack.hpp>
 
 namespace ctm {
 class AgentInfo {
@@ -154,6 +155,11 @@ public:
    */
   void broadcast() {
     // TODO: 업데이트 이후 본 데이터를 클라이언트에게 브로드캐스팅한다
+    spdlog::debug(
+        "icm_agent_id: {}, agent_id: {}, agent_state: {}, state_duration: {}, "
+        "reason_code: {}, skill_group_id: {}, direction: {}, extension: {}",
+        getICMAgentID(), getAgentID(), getAgentState(), getStateDuration(),
+        getReasonCode(), getSkillGroupID(), getDirection(), getExtension());
   }
 
   MSGPACK_DEFINE(icm_agent_id, agent_id, agent_state, state_duration,
@@ -161,14 +167,14 @@ public:
 
 protected:
 private:
-  std::int32_t icm_agent_id;
-  std::string agent_id;
-  std::uint16_t agent_state;
-  std::uint16_t state_duration;
-  std::uint16_t reason_code;
-  std::uint16_t skill_group_id;
-  std::uint32_t direction;
-  std::string extension;
+  std::int32_t icm_agent_id{0};
+  std::string agent_id{""};
+  std::uint16_t agent_state{0};
+  std::uint16_t state_duration{0};
+  std::uint16_t reason_code{0};
+  std::uint16_t skill_group_id{0};
+  std::uint32_t direction{0};
+  std::string extension{""};
 };
 } // namespace ctm
 
