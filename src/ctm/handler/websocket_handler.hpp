@@ -9,7 +9,6 @@
 #include "../../channel/event/event.hpp"
 #include "../../channel/event_channel.hpp"
 #include "../../channel/subscriber.hpp"
-#include "../../ctm/message/agent_message.hpp"
 #include "../../util/ini_loader.h"
 #include "../message/state_request_message.hpp"
 
@@ -96,23 +95,6 @@ public:
     if (bridge_event->getDestination() !=
         channel::event::BridgeEvent::BridgeEventDestination::CLIENT) {
       return;
-    }
-
-    if (bridge_event->getMessage() == nullptr) {
-      spdlog::debug("null message");
-      return;
-    }
-
-    switch (bridge_event->getMessage()->getType()) {
-    case message::Message::AGENT_MESSAGE: {
-      const ctm::message::AgentMessage *agent_message =
-          dynamic_cast<const ctm::message::AgentMessage *>(
-              bridge_event->getMessage().get());
-
-      sendBinary(agent_message->pack());
-    } break;
-    default:
-      break;
     }
   }
 
@@ -372,9 +354,7 @@ protected:
 
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
             ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CTI,
-                std::make_shared<message::StateRequestMessage>(
-                    state_request_message)});
+                channel::event::BridgeEvent::BridgeEventDestination::CTI});
       }
     } break;
     default:

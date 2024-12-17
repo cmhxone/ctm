@@ -4,19 +4,15 @@
 #include "../channel/event/cti_event.hpp"
 #include "../channel/event/event.hpp"
 #include "../channel/event_channel.hpp"
-#include "../cisco/control/query_agent_state_req.hpp"
 #include "../cisco/session/heartbeat_req.hpp"
 #include "../cisco/session/open_req.hpp"
 #include "../util/ini_loader.h"
 #include "./client_state.hpp"
-#include "message/message.hpp"
-#include "message/state_request_message.hpp"
 
 #include <Poco/AutoPtr.h>
 #include <Poco/NObserver.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/SocketNotification.h>
-
 #include <spdlog/spdlog.h>
 
 #include <atomic>
@@ -140,7 +136,7 @@ void CTIClient::connect() noexcept {
   open_req.setServicesRequested(0x80 | 0x10 | 0x04);
   open_req.setAgentStateMask(0x3fff);
   open_req.setConfigMessageMask(0);
-  open_req.setPeripheralID(getPeripheralID());
+  open_req.setPeripheralID(5000);
   open_req.setClientID("ctmonitor");
   open_req.setClientPW("");
 
@@ -286,41 +282,6 @@ void CTIClient::handleEvent(const event::Event *event) {
     if (bridge_event->getDestination() !=
         event::BridgeEvent::BridgeEventDestination::CTI) {
       return;
-    }
-
-    if (bridge_event->getMessage() == nullptr) {
-      spdlog::debug("Received BridgeEventMessage(dst: CTI) null message");
-      return;
-    }
-
-    spdlog::debug(
-        "Received BridgeEventMessage(dst: CTI) message_type: {}",
-        static_cast<std::int32_t>(bridge_event->getMessage()->getType()));
-
-    switch (bridge_event->getMessage()->getType()) {
-    case message::Message::STATE_REQUEST_MESSAGE: {
-      const message::StateRequestMessage *state_request_message =
-          dynamic_cast<const message::StateRequestMessage *>(
-              bridge_event->getMessage().get());
-
-      cisco::control::QueryAgentStateReq query_agent_state_req{};
-
-      for (const std::string &agent_id :
-           state_request_message->getAgentList()) {
-        addInvokeID();
-        query_agent_state_req.setInvokeID(getInvokeID());
-        query_agent_state_req.setPeripheralID(getPeripheralID());
-        query_agent_state_req.setAgentID(agent_id);
-
-        // QUERY_AGENT_STATE_REQ 메시지 전송
-        const vector<byte> query_agent_packet =
-            cisco::common::serialize(query_agent_state_req);
-        client_socket.sendBytes(query_agent_packet.data(),
-                                query_agent_packet.size());
-      }
-    } break;
-    default:
-      break;
     }
   } break;
   default:

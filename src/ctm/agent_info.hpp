@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include <msgpack.hpp>
+
 namespace ctm {
 class AgentInfo {
 public:
@@ -69,6 +71,12 @@ public:
    */
   constexpr std::uint16_t getSkillGroupID() const { return skill_group_id; }
   /**
+   * @brief Get the Direction object
+   *
+   * @return constexpr std::uint32_t
+   */
+  constexpr std::uint32_t getDirection() const { return direction; }
+  /**
    * @brief Get the Extension object
    *
    * @return const std::string
@@ -124,6 +132,14 @@ public:
     this->skill_group_id = skill_group_id;
   }
   /**
+   * @brief Set the Direction object
+   *
+   * @param direction
+   */
+  void setDirection(const std::uint32_t direction) {
+    this->direction = direction;
+  }
+  /**
    * @brief Set the Extension object
    *
    * @param extension
@@ -140,6 +156,9 @@ public:
     // TODO: 업데이트 이후 본 데이터를 클라이언트에게 브로드캐스팅한다
   }
 
+  MSGPACK_DEFINE(icm_agent_id, agent_id, agent_state, state_duration,
+                 reason_code, skill_group_id, direction, extension);
+
 protected:
 private:
   std::int32_t icm_agent_id;
@@ -148,6 +167,7 @@ private:
   std::uint16_t state_duration;
   std::uint16_t reason_code;
   std::uint16_t skill_group_id;
+  std::uint32_t direction;
   std::string extension;
 };
 } // namespace ctm

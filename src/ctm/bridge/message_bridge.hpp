@@ -16,7 +16,8 @@
 #include "../../cisco/session/open_conf.hpp"
 #include "../../cisco/supervisor/agent_team_config_event.hpp"
 #include "../../template/singleton.hpp"
-#include "../message/agent_message.hpp"
+#include "../agent_info.hpp"
+#include "../agent_info_map.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -118,19 +119,39 @@ public:
             agent_state_event.getDirection(), agent_state_event.getMRDID(),
             agent_state_event.getPeripheralID());
 
-        // 에이전트 메시지 생성
-        message::AgentMessage agent_message{};
-        agent_message.setAgentID(agent_state_event.getAgentID());
-        agent_message.setAgentState(agent_state_event.getAgentState());
-        agent_message.setExtension(agent_state_event.getAgentExtension());
-        agent_message.setStateDuration(agent_state_event.getStateDuration());
-        agent_message.setReasonCode(agent_state_event.getEventReasonCode());
+        // 상담원 맵에 저장
+        if (AgentInfoMap::getInstance()->exists(
+                agent_state_event.getAgentID())) {
+          AgentInfo agent_info{};
+          agent_info.setAgentID(agent_state_event.getAgentID());
+          agent_info.setAgentState(agent_state_event.getAgentState());
+          agent_info.setICMAgentID(agent_state_event.getICMAgentID());
+          agent_info.setStateDuration(agent_state_event.getStateDuration());
+          agent_info.setDirection(agent_state_event.getDirection());
+          agent_info.setExtension(agent_state_event.getAgentExtension());
+          agent_info.setReasonCode(agent_state_event.getEventReasonCode());
+          agent_info.setSkillGroupID(agent_state_event.getSkillGroupID());
+
+          AgentInfoMap::getInstance()->get().emplace(
+              agent_state_event.getAgentID(), agent_info);
+        } else {
+          AgentInfo &agent_info = AgentInfoMap::getInstance()->get().at(
+              agent_state_event.getAgentID());
+
+          agent_info.setAgentID(agent_state_event.getAgentID());
+          agent_info.setAgentState(agent_state_event.getAgentState());
+          agent_info.setICMAgentID(agent_state_event.getICMAgentID());
+          agent_info.setStateDuration(agent_state_event.getStateDuration());
+          agent_info.setDirection(agent_state_event.getDirection());
+          agent_info.setExtension(agent_state_event.getAgentExtension());
+          agent_info.setReasonCode(agent_state_event.getEventReasonCode());
+          agent_info.setSkillGroupID(agent_state_event.getSkillGroupID());
+        }
 
         // 클라이언트에게 메시지 배포
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
             ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT,
-                std::make_shared<message::AgentMessage>(agent_message)});
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
@@ -146,17 +167,33 @@ public:
                       query_agent_state_conf.getSkillGroupNumber(),
                       query_agent_state_conf.getICMAgentID());
 
-        // 에이전트 메시지 생성
-        message::AgentMessage agent_message{};
-        agent_message.setAgentID(query_agent_state_conf.getAgentID());
-        agent_message.setAgentState(query_agent_state_conf.getAgentState());
-        agent_message.setExtension(query_agent_state_conf.getAgentExtension());
+        // 상담원 맵에 저장
+        if (AgentInfoMap::getInstance()->exists(
+                query_agent_state_conf.getAgentID())) {
+          AgentInfo agent_info{};
+          agent_info.setAgentID(query_agent_state_conf.getAgentID());
+          agent_info.setAgentState(query_agent_state_conf.getAgentState());
+          agent_info.setICMAgentID(query_agent_state_conf.getICMAgentID());
+          agent_info.setExtension(query_agent_state_conf.getAgentExtension());
+          agent_info.setSkillGroupID(query_agent_state_conf.getSkillGroupID());
+
+          AgentInfoMap::getInstance()->get().emplace(
+              query_agent_state_conf.getAgentID(), agent_info);
+        } else {
+          AgentInfo &agent_info = AgentInfoMap::getInstance()->get().at(
+              query_agent_state_conf.getAgentID());
+
+          agent_info.setAgentID(query_agent_state_conf.getAgentID());
+          agent_info.setAgentState(query_agent_state_conf.getAgentState());
+          agent_info.setICMAgentID(query_agent_state_conf.getICMAgentID());
+          agent_info.setExtension(query_agent_state_conf.getAgentExtension());
+          agent_info.setSkillGroupID(query_agent_state_conf.getSkillGroupID());
+        }
 
         // 클라이언트에게 메시지 배포
         channel::EventChannel<channel::event::BridgeEvent>::getInstance()
             ->publish(channel::event::BridgeEvent{
-                channel::event::BridgeEvent::BridgeEventDestination::CLIENT,
-                std::make_shared<message::AgentMessage>(agent_message)});
+                channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::AGENT_TEAM_CONFIG_EVENT: {
         const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =
@@ -190,7 +227,8 @@ public:
 
         spdlog::debug(
             "System event. pg_status: {}, icm_central_controller_time: {}, "
-            "system_event_id: {}, system_event_arg_1: {}, system_event_arg_2: "
+            "system_event_id: {}, system_event_arg_1: {}, "
+            "system_event_arg_2: "
             "{}, system_event_arg_3: {}, event_device_type: {}, text: {}, "
             "event_device_id: {}",
             system_event.getPGStatus(),
