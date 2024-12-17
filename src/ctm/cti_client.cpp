@@ -295,8 +295,13 @@ void CTIClient::handleEvent(const event::Event *event) {
       std::regex regexp{R"regex(([0-9]*)\-(.*))regex"};
       std::smatch match{};
 
-      std::regex_match(bridge_event->getBridgeEventMessage().message, match,
-                       regexp);
+      std::string buffer{};
+      buffer.resize(bridge_event->getBridgeEventMessage().message.size());
+      std::memcpy(buffer.data(),
+                  bridge_event->getBridgeEventMessage().message.data(),
+                  bridge_event->getBridgeEventMessage().message.size());
+
+      std::regex_match(buffer, match, regexp);
 
       cisco::control::QueryAgentStateReq query_agent_state_req{};
       addInvokeID();

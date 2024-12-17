@@ -5,8 +5,9 @@
 
 #include "./event.hpp"
 
+#include <cstddef>
 #include <cstdint>
-#include <string>
+#include <vector>
 
 namespace channel::event {
 class BridgeEvent : public Event {
@@ -30,12 +31,12 @@ public:
   };
 
   /**
-   * @brief 브릿지 이벤트 메시지
+   * @brief 브릿지 이벤트 메시지 (귀찮아서 구조체로 처리함..)
    *
    */
   struct BridgeEventMessage {
     BridgeEventType type;
-    std::string message;
+    std::vector<std::byte> message;
   };
 
 public:

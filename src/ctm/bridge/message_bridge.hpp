@@ -222,13 +222,19 @@ public:
           bridge_message_stream << agent_team_config_event.getPeripheralID()
                                 << "-" << agent.atc_agent_id;
           bridge_message_stream.flush();
+
+          std::vector<std::byte> bridge_message{};
+          for (const char ch : bridge_message_stream.str()) {
+            bridge_message.emplace_back(static_cast<std::byte>(ch));
+          }
+
           channel::EventChannel<channel::event::BridgeEvent>::getInstance()
               ->publish(channel::event::BridgeEvent{
                   channel::event::BridgeEvent::BridgeEventDestination::CTI,
                   channel::event::BridgeEvent::BridgeEventMessage{
                       .type = channel::event::BridgeEvent::BridgeEventType::
                           QUERY_AGENT,
-                      .message = bridge_message_stream.str()}});
+                      .message = bridge_message}});
 
           // 상담원 맵에 저장
           if (AgentInfoMap::getInstance()->exists(agent.atc_agent_id)) {
