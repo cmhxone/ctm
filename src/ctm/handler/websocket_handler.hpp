@@ -76,7 +76,11 @@ public:
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->subscribe(this);
   }
-
+  /**
+   * @brief Construct a new Websocket Handler object
+   * 
+   * @param ssl_socket 
+   */
   WebsocketHandler(
       std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket)
       : ssl_socket(std::move(ssl_socket)), client_socket(nullptr),
@@ -84,9 +88,6 @@ public:
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->subscribe(this);
   }
-
-  //   WebsocketHandler(asio::) {}
-
   /**
    * @brief Destroy the Websocket Handler object
    *
