@@ -17,10 +17,13 @@
 #include <Poco/Base64Encoder.h>
 #include <Poco/SHA1Engine.h>
 #include <asio/awaitable.hpp>
+#include <asio/basic_stream_socket.hpp>
 #include <asio/buffer.hpp>
 #include <asio/co_spawn.hpp>
 #include <asio/detached.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/ssl/context.hpp>
+#include <asio/ssl/stream.hpp>
 #include <asio/use_awaitable.hpp>
 #include <spdlog/spdlog.h>
 
@@ -67,10 +70,22 @@ public:
    * @param client_socket
    */
   WebsocketHandler(asio::ip::tcp::socket client_socket)
-      : client_socket(std::move(client_socket)) {
+      : client_socket(
+            std::make_shared<asio::basic_stream_socket<asio::ip::tcp>>(
+                std::move(client_socket))) {
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->subscribe(this);
   }
+
+  WebsocketHandler(
+      std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket)
+      : ssl_socket(std::move(ssl_socket)), client_socket(nullptr),
+        ssl_enabled(true) {
+    channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        ->subscribe(this);
+  }
+
+  //   WebsocketHandler(asio::) {}
 
   /**
    * @brief Destroy the Websocket Handler object
@@ -81,8 +96,13 @@ public:
         ->unsubscribe(this);
 
     try {
-      client_socket.shutdown(asio::socket_base::shutdown_both);
-      client_socket.close();
+      if (ssl_enabled) {
+        ssl_socket->next_layer().shutdown(asio::socket_base::shutdown_both);
+        ssl_socket->next_layer().close();
+      } else {
+        client_socket->shutdown(asio::socket_base::shutdown_both);
+        client_socket->close();
+      }
     } catch (...) {
     }
   }
@@ -148,8 +168,10 @@ protected:
 
     std::size_t length = 0;
     try {
-      length = co_await client_socket.async_read_some(asio::buffer(buffer),
-                                                      asio::use_awaitable);
+      length = ssl_enabled ? co_await ssl_socket->async_read_some(
+                                 asio::buffer(buffer), asio::use_awaitable)
+                           : co_await client_socket->async_read_some(
+                                 asio::buffer(buffer), asio::use_awaitable);
     } catch (...) {
       setRunning(false);
       co_return;
@@ -177,9 +199,16 @@ protected:
   sendSwitchingProtocol(const std::vector<std::byte> &data) {
 
     if (!pathValidation(data)) {
-      co_await client_socket.async_send(
-          asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
-      client_socket.close();
+      if (ssl_enabled) {
+        co_await ssl_socket->async_write_some(
+            asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
+        ssl_socket->next_layer().close();
+      } else {
+        co_await client_socket->async_send(
+            asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
+        client_socket->close();
+      }
+
       co_return;
     }
 
@@ -192,9 +221,16 @@ protected:
                        std::regex regexp{R"regex(Upgrade|Sec-WebSocket)regex"};
                        return !std::regex_search(element.first, regexp);
                      }) == http_header.cend()) {
-      co_await client_socket.async_send(
-          asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
-      client_socket.close();
+
+      if (ssl_enabled) {
+        co_await ssl_socket->async_write_some(
+            asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
+        ssl_socket->next_layer().close();
+      } else {
+        co_await client_socket->async_send(
+            asio::buffer(std::string("HTTP/1.1 400 Bad Request\r\n\r\n")));
+        client_socket->close();
+      }
       co_return;
     }
 
@@ -207,7 +243,10 @@ protected:
                            http_header.at("Sec-WebSocket-Key"))
                     << "\r\n\r\n";
 
-    co_await client_socket.async_send(asio::buffer(response_stream.str()));
+    ssl_enabled ? co_await ssl_socket->async_write_some(
+                      asio::buffer(response_stream.str()))
+                : co_await client_socket->async_send(
+                      asio::buffer(response_stream.str()));
 
     setSwitched(true);
 
@@ -448,7 +487,8 @@ protected:
       buffer.emplace_back(static_cast<std::byte>(ch));
     });
 
-    client_socket.send(asio::buffer(buffer));
+    ssl_enabled ? ssl_socket->write_some(asio::buffer(buffer))
+                : client_socket->send(asio::buffer(buffer));
     return;
   }
 
@@ -494,7 +534,8 @@ protected:
     }
 
     std::move(data.cbegin(), data.cend(), std::back_inserter(buffer));
-    client_socket.send(asio::buffer(buffer));
+    ssl_enabled ? ssl_socket->write_some(asio::buffer(buffer))
+                : client_socket->send(asio::buffer(buffer));
     return;
   }
 
@@ -509,7 +550,8 @@ protected:
                         static_cast<std::byte>(WebsocketOpCodes::PONG_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
-    client_socket.send(asio::buffer(buffer));
+    ssl_enabled ? ssl_socket->write_some(asio::buffer(buffer))
+                : client_socket->send(asio::buffer(buffer));
     return;
   }
 
@@ -524,8 +566,13 @@ protected:
                         static_cast<std::byte>(WebsocketOpCodes::CLOSE_FRAME));
     buffer.emplace_back(static_cast<std::byte>(0));
 
-    client_socket.send(asio::buffer(buffer));
-    client_socket.close();
+    if (ssl_enabled) {
+      ssl_socket->write_some(asio::buffer(buffer));
+      ssl_socket->next_layer().close();
+    } else {
+      client_socket->send(asio::buffer(buffer));
+      client_socket->close();
+    }
     return;
   }
 
@@ -558,7 +605,10 @@ protected:
   }
 
 private:
-  asio::ip::tcp::socket client_socket;
+  std::shared_ptr<asio::ssl::stream<asio::basic_stream_socket<asio::ip::tcp>>>
+      ssl_socket;
+  std::shared_ptr<asio::basic_stream_socket<asio::ip::tcp>> client_socket;
+  bool ssl_enabled{false};
   std::atomic_bool is_running{false};
   std::atomic_bool is_switched{false};
 };
