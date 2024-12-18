@@ -11,7 +11,9 @@
 #include "../agent_info_map.hpp"
 
 #include <asio/awaitable.hpp>
+#include <asio/basic_stream_socket.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/ssl/stream.hpp>
 #include <asio/use_awaitable.hpp>
 #include <spdlog/spdlog.h>
 
@@ -32,10 +34,25 @@ public:
    * @param client_socket
    */
   TCPHandler(asio::ip::tcp::socket client_socket)
-      : client_socket(std::move(client_socket)) {
+      : client_socket(
+            std::make_shared<asio::basic_stream_socket<asio::ip::tcp>>(
+                std::move(client_socket))) {
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->subscribe(this);
   }
+  /**
+   * @brief Construct a new TCPHandler object
+   *
+   * @param ssl_socket
+   */
+  TCPHandler(
+      std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket)
+      : ssl_socket(std::move(ssl_socket)), client_socket(nullptr),
+        ssl_enabled(true) {
+    channel::EventChannel<channel::event::BridgeEvent>::getInstance()
+        ->subscribe(this);
+  }
+
   /**
    * @brief Destroy the Asio Handler object
    *
@@ -45,7 +62,11 @@ public:
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->unsubscribe(this);
     try {
-      client_socket.close();
+      if (ssl_enabled) {
+        ssl_socket->next_layer().close();
+      } else {
+        client_socket->close();
+      }
     } catch (...) {
     }
   };
@@ -70,8 +91,13 @@ public:
 
     // 이벤트 수신 시, 클라이언트로 메시지를 전송한다
     try {
-      client_socket.send(
-          asio::buffer(bride_event->getBridgeEventMessage().message));
+      if (ssl_enabled) {
+        ssl_socket->write_some(
+            asio::buffer(bride_event->getBridgeEventMessage().message));
+      } else {
+        client_socket->send(
+            asio::buffer(bride_event->getBridgeEventMessage().message));
+      }
     } catch (...) {
       // 전송 실패 시 끊어진 것으로 간주
       setRunning(false);
@@ -89,7 +115,12 @@ public:
     // 최초 접속 시, 전체 상담원 상태를 바이너리 메시지로 전송
     for (const std::pair<std::string, AgentInfo> &element :
          AgentInfoMap::getInstance()->get()) {
-      co_await client_socket.async_send(asio::buffer(element.second.pack()));
+      if (ssl_enabled) {
+        co_await ssl_socket->async_write_some(
+            asio::buffer(element.second.pack()));
+      } else {
+        co_await client_socket->async_send(asio::buffer(element.second.pack()));
+      }
     }
 
     while (isRunning()) {
@@ -109,15 +140,16 @@ public:
 
     std::size_t length = 0;
     try {
-      length = co_await client_socket.async_read_some(asio::buffer(buffer),
+      if (ssl_enabled) {
+        length = co_await ssl_socket->async_read_some(asio::buffer(buffer),
                                                       asio::use_awaitable);
+      } else {
+        length = co_await client_socket->async_read_some(asio::buffer(buffer),
+                                                         asio::use_awaitable);
+      }
     } catch (...) {
       setRunning(false);
     }
-
-    spdlog::debug("Client sent. peer_address: {}, length: {}",
-                  client_socket.remote_endpoint().address().to_v4().to_string(),
-                  length);
 
     channel::EventChannel<channel::event::ClientEvent>::getInstance()->publish(
         channel::event::ClientEvent{buffer});
@@ -144,7 +176,10 @@ public:
 
 protected:
 private:
-  asio::ip::tcp::socket client_socket;
+  std::shared_ptr<asio::ssl::stream<asio::basic_stream_socket<asio::ip::tcp>>>
+      ssl_socket;
+  std::shared_ptr<asio::basic_stream_socket<asio::ip::tcp>> client_socket;
+  bool ssl_enabled{false};
   std::atomic_bool is_running{false};
 };
 } // namespace ctm::handler
