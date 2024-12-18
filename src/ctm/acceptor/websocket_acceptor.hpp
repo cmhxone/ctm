@@ -1,6 +1,5 @@
 #pragma once
 
-#include <asio/ssl/stream_base.hpp>
 #ifndef _CTM_CTM_ACCEPTOR_WEBSOCKET_ACCEPTOR_HPP_
 #define _CTM_CTM_ACCEPTOR_WEBSOCKET_ACCEPTOR_HPP_
 
@@ -15,6 +14,7 @@
 #include <asio/ip/tcp.hpp>
 #include <asio/ssl/context.hpp>
 #include <asio/ssl/stream.hpp>
+#include <asio/ssl/stream_base.hpp>
 #include <asio/this_coro.hpp>
 #include <asio/use_awaitable.hpp>
 #include <spdlog/spdlog.h>
