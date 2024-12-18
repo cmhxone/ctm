@@ -41,7 +41,7 @@ public:
    *
    */
   virtual ~TCPHandler() {
-    is_running.store(false, std::memory_order_release);
+    setRunning(true);
     channel::EventChannel<channel::event::BridgeEvent>::getInstance()
         ->unsubscribe(this);
     try {
@@ -74,7 +74,7 @@ public:
           asio::buffer(bride_event->getBridgeEventMessage().message));
     } catch (...) {
       // 전송 실패 시 끊어진 것으로 간주
-      is_running.store(false, std::memory_order_release);
+      setRunning(false);
     }
   }
 
@@ -84,7 +84,7 @@ public:
    * @return asio::awaitable<void>
    */
   asio::awaitable<void> handleConnection() {
-    is_running.store(true, std::memory_order_release);
+    setRunning(true);
 
     // 최초 접속 시, 전체 상담원 상태를 바이너리 메시지로 전송
     for (const std::pair<std::string, AgentInfo> &element :
@@ -92,7 +92,7 @@ public:
       co_await client_socket.async_send(asio::buffer(element.second.pack()));
     }
 
-    while (is_running.load(std::memory_order_acquire)) {
+    while (isRunning()) {
       co_await read();
     }
 
@@ -112,7 +112,7 @@ public:
       length = co_await client_socket.async_read_some(asio::buffer(buffer),
                                                       asio::use_awaitable);
     } catch (...) {
-      is_running.store(false, std::memory_order_release);
+      setRunning(false);
     }
 
     spdlog::debug("Client sent. peer_address: {}, length: {}",
@@ -131,6 +131,15 @@ public:
    */
   constexpr bool isRunning() const {
     return is_running.load(std::memory_order_acquire);
+  }
+
+  /**
+   * @brief Set the Running object
+   *
+   * @param is_running
+   */
+  void setRunning(const bool is_running) {
+    this->is_running.store(is_running, std::memory_order_release);
   }
 
 protected:
