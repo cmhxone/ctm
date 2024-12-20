@@ -78,8 +78,8 @@ public:
   }
   /**
    * @brief Construct a new Websocket Handler object
-   * 
-   * @param ssl_socket 
+   *
+   * @param ssl_socket
    */
   WebsocketHandler(
       std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> ssl_socket)
@@ -139,11 +139,22 @@ public:
    * @return asio::awaitable<void>
    */
   asio::awaitable<void> handleConnection() {
+    spdlog::info(
+        "Websocket client connected. peer_address: {}",
+        ssl_enabled
+            ? ssl_socket->next_layer().remote_endpoint().address().to_string()
+            : client_socket->remote_endpoint().address().to_string());
     setRunning(true);
 
     while (isRunning()) {
       co_await read();
     }
+
+    spdlog::info(
+        "Websocket client disconnected. peer_address: {}",
+        ssl_enabled
+            ? ssl_socket->next_layer().remote_endpoint().address().to_string()
+            : client_socket->remote_endpoint().address().to_string());
 
     delete this;
   }

@@ -112,6 +112,12 @@ public:
   asio::awaitable<void> handleConnection() {
     setRunning(true);
 
+    spdlog::info(
+        "TCP client connected. peer_address: {}",
+        ssl_enabled
+            ? ssl_socket->next_layer().remote_endpoint().address().to_string()
+            : client_socket->remote_endpoint().address().to_string());
+
     // 최초 접속 시, 전체 상담원 상태를 바이너리 메시지로 전송
     for (const std::pair<std::string, AgentInfo> &element :
          AgentInfoMap::getInstance()->get()) {
@@ -126,6 +132,12 @@ public:
     while (isRunning()) {
       co_await read();
     }
+
+    spdlog::info(
+        "TCP client disconnected. peer_address: {}",
+        ssl_enabled
+            ? ssl_socket->next_layer().remote_endpoint().address().to_string()
+            : client_socket->remote_endpoint().address().to_string());
 
     delete this;
   }
