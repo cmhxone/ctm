@@ -56,14 +56,14 @@ public:
       std::string passphrase = util::IniLoader::getInstance()->get(
           "server", "websocket.protocol.tls.passphrase", std::string(""));
 
-      ssl_context->use_certificate_chain_file(cert_path.string());
-      ssl_context->use_private_key_file(key_path.string(),
-                                        asio::ssl::context::pem);
       ssl_context->set_password_callback(
           [&](std::size_t length,
               asio::ssl::context::password_purpose purpose) {
             return passphrase;
           });
+      ssl_context->use_certificate_chain_file(cert_path.string());
+      ssl_context->use_private_key_file(key_path.string(),
+                                        asio::ssl::context::pem);
     }
   }
   /**
