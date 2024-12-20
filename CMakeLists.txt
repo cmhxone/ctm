@@ -40,5 +40,5 @@ target_link_libraries(
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/res/conf)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/conf/ctm.ini ${CMAKE_CURRENT_BINARY_DIR}/res/conf/ctm.ini COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/ssl/server.crt ${CMAKE_CURRENT_BINARY_DIR}/res/ssl/server.crt COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/ssl/server.key ${CMAKE_CURRENT_BINARY_DIR}/res/ssl/server.key COPYONLY)
+# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/ssl/server.crt ${CMAKE_CURRENT_BINARY_DIR}/res/ssl/server.crt COPYONLY)
+# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/ssl/server.key ${CMAKE_CURRENT_BINARY_DIR}/res/ssl/server.key COPYONLY)
