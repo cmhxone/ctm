@@ -71,7 +71,8 @@ public:
    */
   virtual void accept() noexcept override {
     std::thread accept_thread([&]() {
-      spdlog::debug("Websocket Acceptor started.");
+      spdlog::info("Websocket Acceptor startd. port: {}, ssl_enabled: {}",
+                   endpoint.port(), ssl_context.has_value());
       startAccept();
       io_context.run();
     });

@@ -62,7 +62,7 @@ CTIClient::CTIClient() {
 
   EventChannel<event::BridgeEvent>::getInstance()->subscribe(this);
 
-  spdlog::debug("CTIClient constructed. cti_server_host: {}", cti_server_host);
+  spdlog::info("CTIClient constructed. cti_server_host: {}", cti_server_host);
 }
 
 /**
@@ -90,8 +90,9 @@ void CTIClient::connect() noexcept {
     client_socket.connect(Poco::Net::SocketAddress{cti_server_host},
                           connection_timespan);
   } catch (const exception &e) {
-    spdlog::error("Unabled to connect CTI Server. cti_server_host: {}",
-                  getCTIServerHost());
+    spdlog::error(
+        "Unabled to connect CTI Server. cti_server_host: {}, reason: {}",
+        getCTIServerHost(), e.what());
     EventChannel<event::CTIErrorEvent>::getInstance()->publish(
         event::CTIErrorEvent{
             getCTIServerHost(),
@@ -123,7 +124,7 @@ void CTIClient::connect() noexcept {
 
   // 접속 중 플래그 변경
   current_state.store(FiniteState::CONNECTED, memory_order::release);
-  spdlog::debug("CTI Server connected. cti_server_host: {}", cti_server_host);
+  spdlog::info("CTI Server connected. cti_server_host: {}", cti_server_host);
 
   // 소켓 옵션 설정
   client_socket.setLinger(true, 3);
@@ -156,6 +157,9 @@ void CTIClient::connect() noexcept {
       const vector<byte> packet = cisco::common::serialize(heartbeat_req);
       client_socket.sendBytes(packet.data(), packet.size());
 
+      spdlog::info("Sent HEARTBEAT_REQ. cti_server_host: {}, invoke_id: {}",
+                   cti_server_host, heartbeat_req.getInvokeID());
+
       // 스레드 sleep을 위로 올리는 경우 current_state 값을 예전 값으로
       // 처리온다. sleep 한 사이에 소켓이 종료 되었을 수 있으니 루프문 마지막에
       // sleep을 걸어준다.
@@ -165,7 +169,8 @@ void CTIClient::connect() noexcept {
   }};
   heartbeat_thread.detach();
 
-  spdlog::debug("Sent OPEN_REQ message. cti_server_host: {}", cti_server_host);
+  spdlog::info("Sent OPEN_REQ message. cti_server_host: {}, invoke_id: {}",
+               cti_server_host, open_req.getInvokeID());
 }
 
 /**
@@ -173,6 +178,7 @@ void CTIClient::connect() noexcept {
  *
  */
 void CTIClient::disconnect() noexcept {
+  spdlog::info("CTI Server disconnected. cti_server_host: {}", cti_server_host);
   current_state.store(FiniteState::FINISHED, memory_order::release);
   client_socket_reactor.stop();
 }
@@ -256,6 +262,9 @@ void CTIClient::onErrorNotification(
       event::CTIErrorEvent{
           getCTIServerHost(),
           event::CTIErrorEvent::CTIErrorType::CONNECTION_LOST});
+
+  spdlog::warn("Error notified from CTI Server. cti_server_host: {}",
+               cti_server_host);
 }
 
 /**
@@ -291,7 +300,6 @@ void CTIClient::handleEvent(const event::Event *event) {
     case event::BridgeEvent::BridgeEventType::NONE:
       break;
     case event::BridgeEvent::BridgeEventType::QUERY_AGENT: {
-      // 정규식... 뒤에도 [0-9]로 하면 알아 먹질 못한다... 꿀밤딱대
       std::regex regexp{R"regex(([0-9]*)\-([0-9]*))regex"};
       std::smatch match{};
 
@@ -313,6 +321,11 @@ void CTIClient::handleEvent(const event::Event *event) {
       client_socket.sendBytes(
           cisco::common::serialize(query_agent_state_req).data(),
           cisco::common::serialize(query_agent_state_req).size());
+
+      spdlog::info("Sent QUERY_AGENT_STATE_REQ. cti_server_host: {}, "
+                   "invoke_id: {}, agent_id: {}",
+                   cti_server_host, query_agent_state_req.getInvokeID(),
+                   query_agent_state_req.getAgentID().value());
     } break;
     case event::BridgeEvent::BridgeEventType::BROADCAST_AGENT_STATE:
       break;

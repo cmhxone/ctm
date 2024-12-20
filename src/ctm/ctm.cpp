@@ -6,13 +6,14 @@
 #include "../util/ini_loader.h"
 #include "./acceptor/acceptor.hpp"
 #include "./acceptor/tcp_acceptor.hpp"
+#include "./acceptor/websocket_acceptor.hpp"
 #include "./bridge/message_bridge.hpp"
 #include "./client_state.hpp"
 #include "./cti_client.h"
-#include "./acceptor/websocket_acceptor.hpp"
 
 #include <chrono>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <thread>
 
 using namespace std;
@@ -34,7 +35,6 @@ CTM::CTM() {
   cti_client->connect();
 
   if (util::IniLoader::getInstance()->get("server", "tcp.enabled", false)) {
-    // acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
     acceptors.emplace_back(make_unique<acceptor::TCPAcceptor>());
   }
 
@@ -74,6 +74,12 @@ void CTM::handleEvent(const Event *event) {
       // CTI 오류
       dynamic_cast<const CTIErrorEvent *>(event)->getCTIErrorType();
       dynamic_cast<const CTIErrorEvent *>(event)->getErrorHost();
+
+      spdlog::warn(
+          "CTI Error notified. error_host: {}, error_type: {}",
+          dynamic_cast<const CTIErrorEvent *>(event)->getErrorHost(),
+          static_cast<std::uint32_t>(
+              dynamic_cast<const CTIErrorEvent *>(event)->getCTIErrorType()));
 
       // 이중화 절체
       ClientState::getInstance()->toggleActive();

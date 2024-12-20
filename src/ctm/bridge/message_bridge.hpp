@@ -91,20 +91,16 @@ public:
         const cisco::session::HeartbeatConf heart_beat_conf =
             cisco::common::deserialize<cisco::session::HeartbeatConf>(
                 cti_event->getPacket());
-        spdlog::debug("Heartbeat conf received. invoke_id: {}",
-                      heart_beat_conf.getInvokeID());
-
-        // 클라이언트에게 메시지 배포
-        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-        //     ->publish(channel::event::BridgeEvent{
-        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
+        spdlog::info("HEARTBEAT_CONF received. invoke_id: {}",
+                     heart_beat_conf.getInvokeID());
       } break;
       case cisco::common::MessageType::AGENT_STATE_EVENT: {
+        // AGENT_STATE_EVENT 응답
         const cisco::message::AgentStateEvent agent_state_event =
             cisco::common::deserialize<cisco::message::AgentStateEvent>(
                 cti_event->getPacket());
-        spdlog::debug(
-            "Agent state event received. agent_state: {}, "
+        spdlog::info(
+            "AGENT_STATE_EVENT received. agent_state: {}, "
             "event_reason_code: {}, icm_agent_id: {}, agent_id: {}, "
             "agent_extension: {}, skill_group_id: {}, "
             "skill_Group_number: {}, state_duration: {}, direction: {}, "
@@ -151,25 +147,22 @@ public:
 
           agent_info.broadcast();
         }
-
-        // 클라이언트에게 메시지 배포
-        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-        //     ->publish(channel::event::BridgeEvent{
-        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::QUERY_AGENT_STATE_CONF: {
+        // QUERY_AGENT_STATE_CONF 응답
         const cisco::control::QueryAgentStateConf query_agent_state_conf =
             cisco::common::deserialize<cisco::control::QueryAgentStateConf>(
                 cti_event->getPacket());
-        spdlog::debug("Query agent state conf. agent_id: {}, agent_state: {}, "
-                      "agent_extension: {}, skill_group_id: {}, "
-                      "skill_group_number: {}, icm_agent_id: {}",
-                      query_agent_state_conf.getAgentID(),
-                      query_agent_state_conf.getAgentState(),
-                      query_agent_state_conf.getAgentExtension(),
-                      query_agent_state_conf.getSkillGroupID(),
-                      query_agent_state_conf.getSkillGroupNumber(),
-                      query_agent_state_conf.getICMAgentID());
+        spdlog::info(
+            "QUERY_AGENT_STATE_CONF received. agent_id: {}, agent_state: {}, "
+            "agent_extension: {}, skill_group_id: {}, "
+            "skill_group_number: {}, icm_agent_id: {}",
+            query_agent_state_conf.getAgentID(),
+            query_agent_state_conf.getAgentState(),
+            query_agent_state_conf.getAgentExtension(),
+            query_agent_state_conf.getSkillGroupID(),
+            query_agent_state_conf.getSkillGroupNumber(),
+            query_agent_state_conf.getICMAgentID());
 
         // 상담원 맵에 저장
         if (AgentInfoMap::getInstance()->exists(
@@ -197,13 +190,9 @@ public:
 
           agent_info.broadcast();
         }
-
-        // 클라이언트에게 메시지 배포
-        // channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-        //     ->publish(channel::event::BridgeEvent{
-        //         channel::event::BridgeEvent::BridgeEventDestination::CLIENT});
       } break;
       case cisco::common::MessageType::AGENT_TEAM_CONFIG_EVENT: {
+        // AGENT_TEAM_CONF_EVENT 응답
         const cisco::supervisor::AgentTeamConfigEvent agent_team_config_event =
             cisco::common::deserialize<cisco::supervisor::AgentTeamConfigEvent>(
                 cti_event->getPacket());
@@ -259,8 +248,8 @@ public:
           }
         }
 
-        spdlog::debug(
-            "Agent team config event. peripheral_id: {}, team_id: {}, "
+        spdlog::info(
+            "AGENT_TEAM_CONF received. peripheral_id: {}, team_id: {}, "
             "number_of_agent: {}, config_operation: {}, department_id: {}, "
             "agent_team_name: {}, atc_agent_list: [{}]",
             agent_team_config_event.getPeripheralID(),
@@ -271,12 +260,14 @@ public:
             agent_team_config_event.getAgentTeamName(), atc_agent_stream.str());
       } break;
       case cisco::common::MessageType::SYSTEM_EVENT: {
+        // SYSTEM_EVENT 응답
         const cisco::misc::SystemEvent system_event =
             cisco::common::deserialize<cisco::misc::SystemEvent>(
                 cti_event->getPacket());
 
-        spdlog::debug(
-            "System event. pg_status: {}, icm_central_controller_time: {}, "
+        spdlog::info(
+            "SYSTEM_EVENT received. pg_status: {}, "
+            "icm_central_controller_time: {}, "
             "system_event_id: {}, system_event_arg_1: {}, "
             "system_event_arg_2: "
             "{}, system_event_arg_3: {}, event_device_type: {}, text: {}, "
@@ -290,8 +281,8 @@ public:
             system_event.getEventDeviceID());
       } break;
       default:
-        spdlog::debug(
-            "CTI_Event received. (non-handled message type) message_type: {}",
+        spdlog::info(
+            "CTI Event received. (non-handled message type) message_type: {}",
             static_cast<std::int32_t>(cti_event->getMessageType()));
         break;
       }
@@ -302,10 +293,6 @@ public:
 
       const channel::event::ClientEvent *client_event =
           dynamic_cast<const channel::event::ClientEvent *>(event);
-
-      //   channel::EventChannel<channel::event::BridgeEvent>::getInstance()
-      //       ->publish(channel::event::BridgeEvent{
-      //           channel::event::BridgeEvent::BridgeEventDestination::CTI});
     } break;
       // CTI, 클라이언트 메시지가 아닌 경우 처리하지 않는다
     default:
