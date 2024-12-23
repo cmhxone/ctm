@@ -44,8 +44,7 @@ int main(int argc, char **argv) {
   // 파일 로거 생성
   if (is_fileout) {
     shared_ptr<spdlog::sinks::sink> logger =
-        make_shared<spdlog::sinks::daily_file_format_sink_mt>(log_file_string,
-                                                              0, 0);
+        make_shared<spdlog::sinks::daily_file_sink_mt>(log_file_string, 0, 0);
 
     log_sinks.emplace_back(std::move(logger));
   }
@@ -74,8 +73,7 @@ int main(int argc, char **argv) {
   multi_sink_logger->set_level(log_level);
 
   // 로그 패턴 설정
-  multi_sink_logger->set_pattern(
-      "[%5l][%Y-%m-%d %H:%M:%S.%e][%n][%t] - %v");
+  multi_sink_logger->set_pattern("[%5l][%Y-%m-%d %H:%M:%S.%e][%n][%t] - %v");
   multi_sink_logger->set_level(log_level);
   multi_sink_logger->flush_on(log_level);
 
