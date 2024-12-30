@@ -138,7 +138,14 @@ public:
    * @param reason_code
    */
   void setReasonCode(const std::uint16_t reason_code) {
-    this->reason_code = reason_code;
+    switch (this->getAgentState()) {
+    case 2:
+      this->reason_code = reason_code;
+      break;
+    default:
+      this->reason_code = 0;
+      break;
+    }
   }
   /**
    * @brief Set the Skill Group I D object
@@ -154,7 +161,17 @@ public:
    * @param direction
    */
   void setDirection(const std::uint32_t direction) {
-    this->direction = direction;
+    switch (this->getAgentState()) {
+    case 4:
+    case 7:
+    case 8:
+    case 10:
+      this->direction = direction;
+      break;
+    default:
+      this->direction = 0;
+      break;
+    }
   }
   /**
    * @brief Set the Extension object
@@ -162,7 +179,15 @@ public:
    * @param extension
    */
   void setExtension(const std::string_view extension) {
-    this->extension = extension.data();
+    switch (this->getAgentState()) {
+    case 1:
+    case 9:
+      this->extension = "";
+      break;
+    default:
+      this->extension = extension.data();
+      break;
+    }
   }
 
   /**
